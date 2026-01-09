@@ -35,7 +35,7 @@ type SequenceWorld = {
 
 type World = MCQWorld | SequenceWorld;
 
-const WORLDS: Record<string, World> = {
+const WORLDS: Record<WorldId, World> = {
   "software-developer": {
     id: "software-developer",
     title: "Software Developer",
@@ -94,21 +94,18 @@ const WORLDS: Record<string, World> = {
 type Outcome = "intro" | "success" | "retry";
 
 export default function CareerWorld({ params }: { params: { career: string } }) {
-  const world = useMemo(() => WORLDS[params.career], [params.career]);
+  const slug = useMemo(() => decodeURIComponent(params.career ?? "").trim().toLowerCase(), [params.career]);
+  const world = useMemo(() => (WORLDS as any)[slug] as World | undefined, [slug]);
 
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [picked, setPicked] = useState<string>("");
   const [sequence, setSequence] = useState<string[]>([]);
-  const [attempts, setAttempts] = useState<number>(0);
-
-  function addAttempt() {
-    setAttempts((a) => a + 1);
-  }
 
   if (!world) {
     return (
       <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1 style={{ fontSize: 28, marginBottom: 10 }}>Career not found</h1>
+        <p style={{ opacity: 0.85, marginTop: 0 }}>Requested: <b>{slug || "(empty)"}</b></p>
         <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
           ← Back to Career Hub
         </Link>
@@ -117,7 +114,6 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
   }
 
   function submitMCQ() {
-    addAttempt();
     if (world.type !== "mcq") return;
     const ok = picked === world.correctOptionId;
     setOutcome(ok ? "success" : "retry");
@@ -132,12 +128,11 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
     setSequence((s) => s.slice(0, -1));
   }
 
-  function resetSeq() {
+  function clearSeq() {
     setSequence([]);
   }
 
   function submitSequence() {
-    addAttempt();
     if (world.type !== "sequence") return;
 
     const ok =
@@ -189,13 +184,7 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
                   cursor: "pointer",
                 }}
               >
-                <input
-                  type="radio"
-                  name="mcq"
-                  value={o.id}
-                  checked={picked === o.id}
-                  onChange={() => setPicked(o.id)}
-                />
+                <input type="radio" name="mcq" value={o.id} checked={picked === o.id} onChange={() => setPicked(o.id)} />
                 <span style={{ fontWeight: 700 }}>{o.label}</span>
               </label>
             ))}
@@ -234,9 +223,7 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
           <div style={{ display: "grid", gap: 10 }}>
             <div style={{ padding: 10, border: "1px solid #ccc", borderRadius: 12 }}>
               <div style={{ fontWeight: 900, marginBottom: 6 }}>Your order</div>
-              <div style={{ opacity: 0.9 }}>
-                {sequence.length === 0 ? "(click steps below)" : sequence.join(" → ")}
-              </div>
+              <div style={{ opacity: 0.9 }}>{sequence.length === 0 ? "(click steps below)" : sequence.join(" → ")}</div>
             </div>
 
             <div style={{ display: "grid", gap: 10 }}>
@@ -292,7 +279,7 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
               </button>
 
               <button
-                onClick={resetSeq}
+                onClick={clearSeq}
                 disabled={sequence.length === 0}
                 style={{
                   padding: "10px 14px",
@@ -325,13 +312,8 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
 
       {outcome !== "intro" && (
         <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-          <h2 style={{ fontSize: 18, marginBottom: 8 }}>
-            {outcome === "success" ? "Success ✅" : "Try Again"}
-          </h2>
+          <h2 style={{ fontSize: 18, marginBottom: 8 }}>{outcome === "success" ? "Success ✅" : "Try Again"}</h2>
           <p style={{ lineHeight: 1.6, margin: 0 }}>{outcome === "success" ? world.success : world.retry}</p>
-          <p style={{ marginTop: 10, opacity: 0.8, marginBottom: 0 }}>
-            Attempts this session: <b>{attempts}</b>
-          </p>
         </section>
       )}
     </main>
