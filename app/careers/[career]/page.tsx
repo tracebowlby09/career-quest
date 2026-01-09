@@ -95,23 +95,28 @@ type Outcome = "intro" | "success" | "retry";
 
 export default function CareerWorld({ params }: { params: { career: string } }) {
   const slug = useMemo(() => decodeURIComponent(params.career ?? "").trim().toLowerCase(), [params.career]);
-  const world = useMemo(() => (WORLDS as any)[slug] as World | undefined, [slug]);
+  const maybeWorld = useMemo(() => (WORLDS as Record<string, World>)[slug], [slug]);
 
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [picked, setPicked] = useState<string>("");
   const [sequence, setSequence] = useState<string[]>([]);
 
-  if (!world) {
+  if (!maybeWorld) {
     return (
       <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1 style={{ fontSize: 28, marginBottom: 10 }}>Career not found</h1>
-        <p style={{ opacity: 0.85, marginTop: 0 }}>Requested: <b>{slug || "(empty)"}</b></p>
+        <p style={{ opacity: 0.85, marginTop: 0 }}>
+          Requested: <b>{slug || "(empty)"}</b>
+        </p>
         <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
           ← Back to Career Hub
         </Link>
       </main>
     );
   }
+
+  // ✅ From here on, world is guaranteed (fixes Vercel TS error)
+  const world = maybeWorld;
 
   function submitMCQ() {
     if (world.type !== "mcq") return;
