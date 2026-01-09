@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { addBadge } from "../../lib/progress";
 
 type WorldId = "software-developer" | "nurse" | "electrician";
@@ -93,8 +94,16 @@ const WORLDS: Record<WorldId, World> = {
 
 type Outcome = "intro" | "success" | "retry";
 
-export default function CareerWorld({ params }: { params: { career: string } }) {
-  const slug = useMemo(() => decodeURIComponent(params.career ?? "").trim().toLowerCase(), [params.career]);
+export default function CareerWorldPage() {
+  const params = useParams<{ career?: string }>();
+
+  const slug = useMemo(() => {
+    const raw = params?.career;
+    if (!raw) return "";
+    const value = Array.isArray(raw) ? raw[0] : raw;
+    return decodeURIComponent(value).trim().toLowerCase();
+  }, [params]);
+
   const maybeWorld = useMemo(() => (WORLDS as Record<string, World>)[slug], [slug]);
 
   const [outcome, setOutcome] = useState<Outcome>("intro");
@@ -115,8 +124,13 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
     );
   }
 
-  // ✅ From here on, world is guaranteed (fixes Vercel TS error)
   const world = maybeWorld;
+
+  function resetAll() {
+    setOutcome("intro");
+    setPicked("");
+    setSequence([]);
+  }
 
   function submitMCQ() {
     if (world.type !== "mcq") return;
@@ -146,12 +160,6 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
 
     setOutcome(ok ? "success" : "retry");
     if (ok) addBadge(world.id);
-  }
-
-  function resetAll() {
-    setOutcome("intro");
-    setPicked("");
-    setSequence([]);
   }
 
   return (
