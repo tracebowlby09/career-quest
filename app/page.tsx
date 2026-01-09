@@ -1,28 +1,30 @@
-﻿import Link from "next/link";
+﻿import { Card, Container, Header, Row, TextLink, Pill } from "./components/ui";
 
 export default function Home() {
   return (
-    <div style={{ padding: "28px 0" }}>
-      <div className="card">
-        <div className="cardInner" style={{ textAlign: "center" }}>
-          <div className="badge" style={{ justifyContent: "center", margin: "0 auto 12px" }}>
-            🎮 <span>Scenario + Skill Challenge</span>
-          </div>
+    <Container>
+      <Header
+        title="Career Quest"
+        subtitle="Three career worlds. Learn → practice → simulate. Earn badges as you pass."
+        right={<Pill>Regionals ready mode</Pill>}
+      />
 
-          <h1 className="h1">Career Quest</h1>
-          <p className="p" style={{ maxWidth: 720, margin: "0 auto" }}>
-            Explore careers through short scenarios and quick challenges.
-            Win a badge for each world you complete.
-          </p>
-
-          <div className="spacer" />
-
-          <div className="row" style={{ justifyContent: "center" }}>
-            <Link className="btn btnPrimary" href="/careers">Start</Link>
-            <Link className="btn" href="/about">How to Play</Link>
-          </div>
+      <Card>
+        <div style={{ fontSize: 18, lineHeight: 1.6, opacity: 0.85 }}>
+          Pick a world, read the curriculum, answer a few questions, then take a short simulator to pass or fail.
         </div>
+
+        <div style={{ height: 14 }} />
+
+        <Row>
+          <TextLink href="/careers">▶ Start</TextLink>
+          <TextLink href="/about">ℹ How to Play</TextLink>
+        </Row>
+      </Card>
+
+      <div style={{ marginTop: 14, opacity: 0.7, fontSize: 13 }}>
+        Tip: Badges save on this device (localStorage).
       </div>
-    </div>
+    </Container>
   );
 }

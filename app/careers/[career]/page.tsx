@@ -1,132 +1,109 @@
 ﻿"use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useParams } from "next/navigation";
 import { addBadge } from "../../lib/progress";
+import { Card, CardTitle, Container, Header, Pill, Row, TextLink, Button } from "../../components/ui";
+
+type Outcome = "intro" | "success" | "retry";
 
 type WorldId = "software-developer" | "nurse" | "electrician";
-type Option = { id: string; label: string };
+type World =
+  | {
+      id: WorldId;
+      title: string;
+      icon: string;
+      scenario: string;
+      type: "mcq";
+      prompt: string;
+      options: { id: string; label: string }[];
+      correctOptionId: string;
+      success: string;
+      retry: string;
+    }
+  | {
+      id: WorldId;
+      title: string;
+      icon: string;
+      scenario: string;
+      type: "sequence";
+      prompt: string;
+      options: { id: string; label: string }[];
+      correctSequence: string[];
+      success: string;
+      retry: string;
+    };
 
-type MCQWorld = {
-  id: WorldId;
-  title: string;
-  icon: string;
-  scenario: string;
-  type: "mcq";
-  prompt: string;
-  options: Option[];
-  correctOptionId: string;
-  success: string;
-  retry: string;
-};
-
-type SequenceWorld = {
-  id: WorldId;
-  title: string;
-  icon: string;
-  scenario: string;
-  type: "sequence";
-  prompt: string;
-  options: Option[];
-  correctSequence: string[];
-  success: string;
-  retry: string;
-};
-
-type World = MCQWorld | SequenceWorld;
-
-const WORLDS: Record<WorldId, World> = {
+const WORLDS: Record<string, World> = {
   "software-developer": {
     id: "software-developer",
     title: "Software Developer",
     icon: "💻",
-    scenario:
-      "A release build is blocked because users report the primary button text is incorrect. You need to choose the correct label so the UI matches the spec.",
+    scenario: "A release is blocked by a failing feature. Pick the best next step to debug safely.",
     type: "mcq",
-    prompt: "Which label should the primary button use?",
+    prompt: "What should you do first?",
     options: [
-      { id: "start", label: "Start" },
-      { id: "begin", label: "Begin" },
-      { id: "launch", label: "Launch" },
+      { id: "a", label: "Change random code until tests pass" },
+      { id: "b", label: "Reproduce the bug and read the error message" },
+      { id: "c", label: "Delete the failing test" },
     ],
-    correctOptionId: "start",
-    success: "Nice work — you fixed the UI issue and unblocked the release.",
-    retry: "Not quite — check the spec wording and try again.",
+    correctOptionId: "b",
+    success: "Nice. Reproduce + read errors is the fastest, safest start.",
+    retry: "Try again. Think: what gives you the most information first?",
   },
-
   nurse: {
     id: "nurse",
     title: "Nurse",
     icon: "🩺",
-    scenario:
-      "Two patients arrive at the same time. One is short of breath and looks pale; the other has a minor cut and is stable. You must choose the safest first step.",
+    scenario: "Two patients need help. Choose the best first action to keep everyone safe.",
     type: "mcq",
-    prompt: "What should you do first?",
+    prompt: "What is the safest first step?",
     options: [
-      { id: "assess", label: "Assess the short-of-breath patient first (airway/breathing priority)" },
-      { id: "paperwork", label: "Complete intake paperwork before anything else" },
-      { id: "wait", label: "Wait for the doctor before taking action" },
+      { id: "a", label: "Assess airway/breathing/circulation (ABCs)" },
+      { id: "b", label: "Finish paperwork first" },
+      { id: "c", label: "Assume it’s not urgent" },
     ],
-    correctOptionId: "assess",
-    success: "Good call — you prioritized the highest-risk patient first.",
-    retry: "Try again — prioritize the patient with the most urgent symptoms first.",
+    correctOptionId: "a",
+    success: "Correct. Start with safety and basic assessment (ABCs).",
+    retry: "Not quite. In healthcare, start with safety + assessment.",
   },
-
   electrician: {
     id: "electrician",
     title: "Electrician",
     icon: "⚡",
-    scenario:
-      "Lights flicker in a room and the homeowner reports a burning smell earlier in the day. You must follow safe procedure and order the steps correctly.",
+    scenario: "Lights flicker in a room. You need to diagnose without creating danger.",
     type: "sequence",
-    prompt: "Click the steps in the correct (safest) order:",
+    prompt: "Put the steps in the safest order:",
     options: [
-      { id: "breaker", label: "Turn off power at the breaker" },
-      { id: "verify", label: "Verify the circuit is de-energized (test)" },
-      { id: "inspect", label: "Inspect the fixture/wiring and connections" },
+      { id: "off", label: "Turn off power at the breaker" },
+      { id: "test", label: "Test to confirm power is off" },
+      { id: "inspect", label: "Inspect wiring / connections" },
     ],
-    correctSequence: ["breaker", "verify", "inspect"],
-    success: "Perfect — you followed safe procedure before troubleshooting.",
-    retry: "Not quite — remember: shut off power, verify, then inspect.",
+    correctSequence: ["off", "test", "inspect"],
+    success: "Yes. Power off → confirm → then inspect.",
+    retry: "Try again. Think: safety first, then verify, then diagnose.",
   },
 };
 
-type Outcome = "intro" | "success" | "retry";
-
-export default function CareerWorldPage() {
-  const params = useParams<{ career?: string }>();
-
-  const slug = useMemo(() => {
-    const raw = params?.career;
-    if (!raw) return "";
-    const value = Array.isArray(raw) ? raw[0] : raw;
-    return decodeURIComponent(value).trim().toLowerCase();
-  }, [params]);
-
-  const maybeWorld = useMemo(() => (WORLDS as Record<string, World>)[slug], [slug]);
-
+export default function CareerWorld({ params }: { params: { career: string } }) {
+  const world = useMemo(() => WORLDS[params.career], [params.career]);
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [picked, setPicked] = useState<string>("");
   const [sequence, setSequence] = useState<string[]>([]);
 
-  if (!maybeWorld) {
+  if (!world) {
     return (
-      <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 28, marginBottom: 10 }}>Career not found</h1>
-        <p style={{ opacity: 0.85, marginTop: 0 }}>
-          Requested: <b>{slug || "(empty)"}</b>
-        </p>
-        <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
-          ← Back to Career Hub
-        </Link>
-      </main>
+      <Container>
+        <Header title="Career not found" right={<TextLink href="/careers">← Career Hub</TextLink>} />
+        <Card>
+          <div style={{ opacity: 0.85 }}>
+            That world ID doesn’t exist. Go back and pick one of the three worlds.
+          </div>
+        </Card>
+      </Container>
     );
   }
 
-  const world = maybeWorld;
-
-  function resetAll() {
+  function reset() {
     setOutcome("intro");
     setPicked("");
     setSequence([]);
@@ -139,196 +116,121 @@ export default function CareerWorldPage() {
     if (ok) addBadge(world.id);
   }
 
-  function toggleSeq(id: string) {
-    setSequence((s) => (s.includes(id) ? s : [...s, id]));
-  }
-
-  function undoLast() {
-    setSequence((s) => s.slice(0, -1));
-  }
-
-  function clearSeq() {
-    setSequence([]);
+  function tapSequence(id: string) {
+    if (world.type !== "sequence") return;
+    if (sequence.includes(id)) return;
+    setSequence([...sequence, id]);
   }
 
   function submitSequence() {
     if (world.type !== "sequence") return;
-
     const ok =
       sequence.length === world.correctSequence.length &&
       sequence.every((v, i) => v === world.correctSequence[i]);
-
     setOutcome(ok ? "success" : "retry");
     if (ok) addBadge(world.id);
   }
 
   return (
-    <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 34 }}>
-          {world.icon} {world.title}
-        </h1>
-        <Link href="/careers" style={{ alignSelf: "center", fontWeight: 800, textDecoration: "none" }}>
-          ← Career Hub
-        </Link>
-      </header>
+    <Container>
+      <Header
+        title={`${world.icon} ${world.title} World`}
+        subtitle="Scenario → challenge → outcome (pass earns a badge)."
+        right={<TextLink href="/careers">← Career Hub</TextLink>}
+      />
 
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Scenario</h2>
-        <p style={{ lineHeight: 1.6, opacity: 0.9, margin: 0 }}>{world.scenario}</p>
-      </section>
+      <Card>
+        <CardTitle>Scenario</CardTitle>
+        <div style={{ opacity: 0.85, lineHeight: 1.6 }}>{world.scenario}</div>
+      </Card>
 
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Challenge</h2>
-        <p style={{ marginBottom: 12 }}>{world.prompt}</p>
+      <div style={{ height: 14 }} />
+
+      <Card>
+        <CardTitle>Challenge</CardTitle>
+        <div style={{ opacity: 0.85, marginBottom: 12 }}>{world.prompt}</div>
 
         {world.type === "mcq" ? (
           <div style={{ display: "grid", gap: 10 }}>
             {world.options.map((o) => (
-              <label
+              <button
                 key={o.id}
+                onClick={() => setPicked(o.id)}
                 style={{
-                  display: "flex",
-                  gap: 10,
-                  alignItems: "center",
-                  padding: 10,
-                  border: "1px solid #ccc",
-                  borderRadius: 12,
+                  textAlign: "left",
+                  padding: "12px 12px",
+                  borderRadius: 14,
+                  border: "1px solid var(--border)",
+                  background: picked === o.id ? "rgba(120,160,255,0.20)" : "rgba(255,255,255,0.06)",
+                  color: "var(--text)",
+                  fontWeight: 800,
                   cursor: "pointer",
                 }}
               >
-                <input type="radio" name="mcq" value={o.id} checked={picked === o.id} onChange={() => setPicked(o.id)} />
-                <span style={{ fontWeight: 700 }}>{o.label}</span>
-              </label>
+                {o.label}
+              </button>
             ))}
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6 }}>
-              <button
-                onClick={submitMCQ}
-                disabled={!picked}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: picked ? "pointer" : "not-allowed",
-                  opacity: picked ? 1 : 0.6,
-                }}
-              >
-                Submit
-              </button>
-
-              <button
-                onClick={resetAll}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                Reset
-              </button>
-            </div>
+            <Row>
+              <Button onClick={submitMCQ}>Submit</Button>
+              <Button onClick={reset}>Reset</Button>
+              {picked && <Pill>Picked: {picked.toUpperCase()}</Pill>}
+            </Row>
           </div>
         ) : (
-          <div style={{ display: "grid", gap: 10 }}>
-            <div style={{ padding: 10, border: "1px solid #ccc", borderRadius: 12 }}>
-              <div style={{ fontWeight: 900, marginBottom: 6 }}>Your order</div>
-              <div style={{ opacity: 0.9 }}>{sequence.length === 0 ? "(click steps below)" : sequence.join(" → ")}</div>
-            </div>
-
-            <div style={{ display: "grid", gap: 10 }}>
+          <div>
+            <Row>
               {world.options.map((o) => (
-                <button
-                  key={o.id}
-                  onClick={() => toggleSeq(o.id)}
-                  disabled={sequence.includes(o.id)}
-                  style={{
-                    textAlign: "left",
-                    padding: 10,
-                    borderRadius: 12,
-                    border: "1px solid #ccc",
-                    fontWeight: 800,
-                    cursor: sequence.includes(o.id) ? "not-allowed" : "pointer",
-                    opacity: sequence.includes(o.id) ? 0.6 : 1,
-                  }}
-                >
-                  {o.label}
-                </button>
+                <Button key={o.id} onClick={() => tapSequence(o.id)}>
+                  {sequence.includes(o.id) ? "✓ " : ""}{o.label}
+                </Button>
               ))}
-            </div>
+            </Row>
 
-            <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6 }}>
-              <button
-                onClick={submitSequence}
-                disabled={sequence.length !== world.correctSequence.length}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: sequence.length === world.correctSequence.length ? "pointer" : "not-allowed",
-                  opacity: sequence.length === world.correctSequence.length ? 1 : 0.6,
-                }}
-              >
-                Submit
-              </button>
+            <div style={{ height: 10 }} />
 
-              <button
-                onClick={undoLast}
-                disabled={sequence.length === 0}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: sequence.length ? "pointer" : "not-allowed",
-                  opacity: sequence.length ? 1 : 0.6,
-                }}
-              >
-                Undo
-              </button>
+            <Card
+              children={
+                <>
+                  <CardTitle>Your order</CardTitle>
+                  {sequence.length === 0 ? (
+                    <div style={{ opacity: 0.8 }}>Tap the steps above in order.</div>
+                  ) : (
+                    <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9, opacity: 0.9 }}>
+                      {sequence.map((id) => (
+                        <li key={id}>{world.options.find((o) => o.id === id)?.label}</li>
+                      ))}
+                    </ol>
+                  )}
+                </>
+              }
+            />
 
-              <button
-                onClick={clearSeq}
-                disabled={sequence.length === 0}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: sequence.length ? "pointer" : "not-allowed",
-                  opacity: sequence.length ? 1 : 0.6,
-                }}
-              >
-                Clear
-              </button>
+            <div style={{ height: 10 }} />
 
-              <button
-                onClick={resetAll}
-                style={{
-                  padding: "10px 14px",
-                  borderRadius: 12,
-                  border: "1px solid #ccc",
-                  fontWeight: 900,
-                  cursor: "pointer",
-                }}
-              >
-                Reset All
-              </button>
-            </div>
+            <Row>
+              <Button onClick={submitSequence}>Submit</Button>
+              <Button onClick={reset}>Reset</Button>
+            </Row>
           </div>
         )}
-      </section>
+      </Card>
 
       {outcome !== "intro" && (
-        <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-          <h2 style={{ fontSize: 18, marginBottom: 8 }}>{outcome === "success" ? "Success ✅" : "Try Again"}</h2>
-          <p style={{ lineHeight: 1.6, margin: 0 }}>{outcome === "success" ? world.success : world.retry}</p>
-        </section>
+        <div style={{ height: 14 }} />
       )}
-    </main>
+
+      {outcome !== "intro" && (
+        <Card>
+          <CardTitle>Outcome</CardTitle>
+          <Row>
+            {outcome === "success" ? <Pill>✅ Pass</Pill> : <Pill>❌ Retry</Pill>}
+          </Row>
+          <div style={{ marginTop: 10, opacity: 0.9, lineHeight: 1.6 }}>
+            {outcome === "success" ? world.success : world.retry}
+          </div>
+        </Card>
+      )}
+    </Container>
   );
 }

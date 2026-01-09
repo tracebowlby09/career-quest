@@ -1,39 +1,30 @@
-﻿import Link from "next/link";
+﻿import { Card, CardTitle, Container, Header, TextLink, Pill } from "../components/ui";
 
-export default function About() {
+export default function Page() {
   return (
-    <div style={{ padding: "28px 0" }}>
-      <div className="card">
-        <div className="cardInner">
-          <h1 className="h1" style={{ fontSize: 42 }}>How to Play</h1>
+    <Container>
+      <Header
+        title="How to Play"
+        subtitle="Each world is a short learning loop that ends in a simulator."
+        right={<TextLink href="/careers">← Career Hub</TextLink>}
+      />
 
-          <div className="spacer" />
+      <Card>
+        <CardTitle>Flow</CardTitle>
+        <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9, opacity: 0.88 }}>
+          <li><b>Curriculum</b> — learn the basics for that career.</li>
+          <li><b>Questions</b> — quick checks for understanding.</li>
+          <li><b>Simulator</b> — one short “real-life” decision.</li>
+          <li><b>Pass / Fail</b> — pass earns a badge. Fail lets you retry.</li>
+        </ol>
 
-          <div className="card" style={{ background: "var(--panel2)" }}>
-            <div className="cardInner">
-              <h2 className="h2">1) Pick a career world</h2>
-              <p className="p">Go to the Career Hub and choose a world to enter.</p>
+        <div style={{ height: 14 }} />
 
-              <div className="spacer" />
-
-              <h2 className="h2">2) Read the scenario</h2>
-              <p className="p">Each career gives you a short situation you’d face on the job.</p>
-
-              <div className="spacer" />
-
-              <h2 className="h2">3) Beat the skill challenge</h2>
-              <p className="p">Type the correct response. If you succeed, you earn a badge.</p>
-            </div>
-          </div>
-
-          <div className="spacer" />
-
-          <div className="row">
-            <Link className="btn btnPrimary" href="/careers">Go to Career Hub</Link>
-            <Link className="btn" href="/">Back to Home</Link>
-          </div>
+        <CardTitle>Controls</CardTitle>
+        <div style={{ opacity: 0.85, lineHeight: 1.6 }}>
+          Keyboard-friendly: <Pill>Tab</Pill> to move, <Pill>Enter</Pill> to activate buttons/links.
         </div>
-      </div>
-    </div>
+      </Card>
+    </Container>
   );
 }
