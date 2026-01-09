@@ -2,64 +2,21 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { addBadge } from "../../lib/progress";
+import { addAttempt, addBadge, addWin } from "../../lib/progress";
+import { WORLDS, type WorldId } from "../../lib/worlds";
 
 type Outcome = "intro" | "success" | "retry";
 
-const careerData: Record<
-  string,
-  {
-    id: "software-developer" | "nurse" | "electrician";
-    title: string;
-    icon: string;
-    scenario: string;
-    challengePrompt: string;
-    correctAnswer: string;
-    successText: string;
-    retryText: string;
-  }
-> = {
-  "software-developer": {
-    id: "software-developer",
-    title: "Software Developer",
-    icon: "💻",
-    scenario:
-      "A feature is failing right before release. You need to confirm the correct UI label and ship the fix.",
-    challengePrompt: "Type the word: start",
-    correctAnswer: "start",
-    successText: "You shipped the fix. Badge unlocked!",
-    retryText: "Close — debugging takes iteration. Try again.",
-  },
-  nurse: {
-    id: "nurse",
-    title: "Nurse",
-    icon: "🩺",
-    scenario:
-      "Two patients need attention. You must prioritize, assess symptoms, and communicate clearly.",
-    challengePrompt: "Type the word: assess",
-    correctAnswer: "assess",
-    successText: "You made the safest call. Badge unlocked!",
-    retryText: "Try again — focus on the safest first step.",
-  },
-  electrician: {
-    id: "electrician",
-    title: "Electrician",
-    icon: "⚡",
-    scenario:
-      "A room’s lights flicker. Diagnose the issue while following safety procedures.",
-    challengePrompt: "Type the phrase: power off",
-    correctAnswer: "power off",
-    successText: "Safety first. Badge unlocked!",
-    retryText: "Try again — always start with safety.",
-  },
-};
-
 export default function CareerWorld({ params }: { params: { career: string } }) {
-  const data = useMemo(() => careerData[params.career], [params.career]);
-  const [outcome, setOutcome] = useState<Outcome>("intro");
-  const [answer, setAnswer] = useState("");
+  const world = useMemo(() => WORLDS[params.career as WorldId], [params.career]);
 
-  if (!data) {
+  const [outcome, setOutcome] = useState<Outcome>("intro");
+  const [picked, setPicked] = useState<string | null>(null);
+
+  // For sequence world
+  const [seq, setSeq] = useState<string[]>([]);
+
+  if (!world) {
     return (
       <div style={{ padding: "28px 0" }}>
         <div className="card">
@@ -67,19 +24,50 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
             <h1 className="h1" style={{ fontSize: 40 }}>Career not found</h1>
             <p className="p">That world doesn’t exist yet.</p>
             <div className="spacer" />
-            <Link className="btn btnPrimary" href="/careers">Back to Career Hub</Link>
+            <Link className="btn btnPrimary" href="/careers">Back to Hub</Link>
           </div>
         </div>
       </div>
     );
   }
 
-  function submit() {
-    const normalized = answer.trim().toLowerCase();
-    const target = data.correctAnswer.trim().toLowerCase();
-    const ok = normalized === target;
+  function submitMCQ() {
+    addAttempt();
+    const ok = picked === world.correctOptionId;
     setOutcome(ok ? "success" : "retry");
-    if (ok) addBadge(data.id);
+    if (ok) {
+      addBadge(world.id);
+      addWin();
+    }
+  }
+
+  function toggleSeq(id: string) {
+    setSeq((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= 3) return prev; // only first 3 steps
+      return [...prev, id];
+    });
+  }
+
+  function submitSequence() {
+    addAttempt();
+    const ok =
+      seq.length === 3 &&
+      seq[0] === world.correctSequence[0] &&
+      seq[1] === world.correctSequence[1] &&
+      seq[2] === world.correctSequence[2];
+
+    setOutcome(ok ? "success" : "retry");
+    if (ok) {
+      addBadge(world.id);
+      addWin();
+    }
+  }
+
+  function reset() {
+    setOutcome("intro");
+    setPicked(null);
+    setSeq([]);
   }
 
   return (
@@ -88,17 +76,11 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
         <div className="cardInner">
           <div className="row" style={{ justifyContent: "space-between" }}>
             <h1 className="h1" style={{ fontSize: 42, marginBottom: 0 }}>
-              {data.icon} {data.title} World
+              {world.icon} {world.title} World
             </h1>
-            <Link className="btn" href="/careers">Career Hub</Link>
-          </div>
-
-          <div className="spacer" />
-
-          <div className="card" style={{ background: "var(--panel2)" }}>
-            <div className="cardInner">
-              <h2 className="h2">Scenario</h2>
-              <p className="p">{data.scenario}</p>
+            <div className="row">
+              <Link className="btn" href="/careers">Career Hub</Link>
+              <button className="btn" onClick={reset}>Reset</button>
             </div>
           </div>
 
@@ -106,35 +88,78 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
 
           <div className="card" style={{ background: "var(--panel2)" }}>
             <div className="cardInner">
-              <h2 className="h2">Skill Challenge</h2>
-              <p className="p" style={{ marginBottom: 12 }}>{data.challengePrompt}</p>
+              <h2 className="h2">Scenario</h2>
+              <p className="p">{world.scenario}</p>
+            </div>
+          </div>
 
-              <label style={{ display: "block", fontWeight: 900, marginBottom: 8 }} htmlFor="answer">
-                Your answer
-              </label>
+          <div className="spacer" />
 
-              <input
-                id="answer"
-                className="input"
-                value={answer}
-                onChange={(e) => setAnswer(e.target.value)}
-                placeholder="Type here…"
-              />
+          <div className="card" style={{ background: "var(--panel2)" }}>
+            <div className="cardInner">
+              <h2 className="h2">Challenge</h2>
+              <p className="p" style={{ marginBottom: 14 }}>{world.prompt}</p>
 
-              <div className="spacer" />
+              {world.type === "mcq" ? (
+                <>
+                  <div className="row" style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}>
+                    {world.options.map((o) => (
+                      <button
+                        key={o.id}
+                        className="btn"
+                        onClick={() => setPicked(o.id)}
+                        style={{
+                          justifyContent: "flex-start",
+                          background: picked === o.id ? "rgba(96,165,250,.22)" : undefined,
+                          borderColor: picked === o.id ? "rgba(96,165,250,.55)" : undefined
+                        }}
+                      >
+                        {o.label}
+                      </button>
+                    ))}
+                  </div>
 
-              <div className="row">
-                <button className="btn btnPrimary" onClick={submit}>Submit</button>
-                <button
-                  className="btn"
-                  onClick={() => {
-                    setAnswer("");
-                    setOutcome("intro");
-                  }}
-                >
-                  Reset
-                </button>
-              </div>
+                  <div className="spacer" />
+                  <button className="btn btnPrimary" onClick={submitMCQ} disabled={!picked} style={{ opacity: picked ? 1 : 0.6 }}>
+                    Submit Answer
+                  </button>
+                </>
+              ) : (
+                <>
+                  <p className="muted" style={{ marginBottom: 10 }}>
+                    Choose exactly 3 steps. Click again to unselect.
+                  </p>
+
+                  <div className="row" style={{ flexDirection: "column", alignItems: "stretch", gap: 10 }}>
+                    {world.options.map((o) => {
+                      const active = seq.includes(o.id);
+                      const index = seq.indexOf(o.id);
+                      return (
+                        <button
+                          key={o.id}
+                          className="btn"
+                          onClick={() => toggleSeq(o.id)}
+                          style={{
+                            justifyContent: "flex-start",
+                            background: active ? "rgba(34,197,94,.18)" : undefined,
+                            borderColor: active ? "rgba(34,197,94,.45)" : undefined
+                          }}
+                        >
+                          {active ? `Step ${index + 1}: ` : ""}{o.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="spacer" />
+                  <div className="row">
+                    <button className="btn btnPrimary" onClick={submitSequence} disabled={seq.length !== 3} style={{ opacity: seq.length === 3 ? 1 : 0.6 }}>
+                      Submit Steps
+                    </button>
+                    <span className="muted">Selected: {seq.length}/3</span>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 
@@ -143,21 +168,20 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
               <div className="spacer" />
               <div className="card" style={{ background: "var(--panel2)" }}>
                 <div className="cardInner">
-                  <h2 className="h2">
-                    Outcome: {outcome === "success" ? "Success ✅" : "Try Again"}
-                  </h2>
-                  <p className="p">
-                    {outcome === "success" ? data.successText : data.retryText}
-                  </p>
+                  <h2 className="h2">Result: {outcome === "success" ? "Success ✅" : "Try Again"}</h2>
+                  <p className="p">{outcome === "success" ? world.success : world.retry}</p>
                   {outcome === "success" && (
-                    <p className="muted" style={{ marginTop: 12 }}>
-                      Go back to the Career Hub to see your badge.
-                    </p>
+                    <div className="spacer" />
                   )}
+                  <div className="row">
+                    <Link className="btn btnPrimary" href="/careers">Back to Hub</Link>
+                    <button className="btn" onClick={reset}>Try Again</button>
+                  </div>
                 </div>
               </div>
             </>
           )}
+
         </div>
       </div>
     </div>
