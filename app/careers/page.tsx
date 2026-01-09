@@ -16,7 +16,7 @@ export default function CareersPage() {
             Pick a career world to experience a scenario and complete a skill challenge.
           </p>
         </div>
-        <Link href="/" style={{ alignSelf: "center", fontWeight: 600, textDecoration: "none" }}>
+        <Link href="/" style={{ alignSelf: "center", fontWeight: 700, textDecoration: "none" }}>
           ← Title Screen
         </Link>
       </header>
@@ -24,7 +24,7 @@ export default function CareersPage() {
       <ul style={{ marginTop: 18, paddingLeft: 18, lineHeight: 2 }}>
         {careers.map((c) => (
           <li key={c.id}>
-            <Link href={`/careers/${c.id}`} style={{ fontWeight: 700, textDecoration: "none" }}>
+            <Link href={`/careers/${c.id}`} style={{ fontWeight: 800, textDecoration: "none" }}>
               {c.title}
             </Link>
             <span style={{ marginLeft: 8, opacity: 0.8 }}>— {c.tagline}</span>
