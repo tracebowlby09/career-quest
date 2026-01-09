@@ -1,24 +1,39 @@
 ﻿import Link from "next/link";
 
-export default function Page() {
+export default function About() {
   return (
-    <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <h1 style={{ fontSize: 36, marginBottom: 12 }}>How to Play</h1>
+    <div style={{ padding: "28px 0" }}>
+      <div className="card">
+        <div className="cardInner">
+          <h1 className="h1" style={{ fontSize: 42 }}>How to Play</h1>
 
-      <p style={{ fontSize: 18, lineHeight: 1.6, marginBottom: 16 }}>
-        Choose a career world, read the scenario, then complete a short skill challenge.
-        If you succeed, you earn a badge. Your badges save on this device.
-      </p>
+          <div className="spacer" />
 
-      <ul style={{ fontSize: 16, lineHeight: 1.7, marginBottom: 24 }}>
-        <li><b>Keyboard-friendly:</b> use Tab and Enter to navigate.</li>
-        <li><b>Multiple outcomes:</b> retry paths are part of gameplay.</li>
-        <li><b>Badges:</b> your progress shows on the Career Hub.</li>
-      </ul>
+          <div className="card" style={{ background: "var(--panel2)" }}>
+            <div className="cardInner">
+              <h2 className="h2">1) Pick a career world</h2>
+              <p className="p">Go to the Career Hub and choose a world to enter.</p>
 
-      <Link href="/careers" style={{ textDecoration: "none", fontWeight: 800 }}>
-        ← Back to Career Hub
-      </Link>
-    </main>
+              <div className="spacer" />
+
+              <h2 className="h2">2) Read the scenario</h2>
+              <p className="p">Each career gives you a short situation you’d face on the job.</p>
+
+              <div className="spacer" />
+
+              <h2 className="h2">3) Beat the skill challenge</h2>
+              <p className="p">Type the correct response. If you succeed, you earn a badge.</p>
+            </div>
+          </div>
+
+          <div className="spacer" />
+
+          <div className="row">
+            <Link className="btn btnPrimary" href="/careers">Go to Career Hub</Link>
+            <Link className="btn" href="/">Back to Home</Link>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

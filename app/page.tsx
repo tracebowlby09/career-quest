@@ -2,41 +2,27 @@
 
 export default function Home() {
   return (
-    <main style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24 }}>
-      <div style={{ maxWidth: 760, width: "100%", textAlign: "center" }}>
-        <h1 style={{ fontSize: 50, marginBottom: 8 }}>Career Quest</h1>
-        <p style={{ fontSize: 18, opacity: 0.85, marginBottom: 22, lineHeight: 1.6 }}>
-          Explore careers through short scenarios + skill challenges. Earn badges as you complete worlds.
-        </p>
+    <div style={{ padding: "28px 0" }}>
+      <div className="card">
+        <div className="cardInner" style={{ textAlign: "center" }}>
+          <div className="badge" style={{ justifyContent: "center", margin: "0 auto 12px" }}>
+            🎮 <span>Scenario + Skill Challenge</span>
+          </div>
 
-        <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
-          <Link
-            href="/careers"
-            style={{
-              padding: "12px 18px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              textDecoration: "none",
-              fontWeight: 800,
-            }}
-          >
-            Start
-          </Link>
+          <h1 className="h1">Career Quest</h1>
+          <p className="p" style={{ maxWidth: 720, margin: "0 auto" }}>
+            Explore careers through short scenarios and quick challenges.
+            Win a badge for each world you complete.
+          </p>
 
-          <Link
-            href="/about"
-            style={{
-              padding: "12px 18px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              textDecoration: "none",
-              fontWeight: 800,
-            }}
-          >
-            How to Play
-          </Link>
+          <div className="spacer" />
+
+          <div className="row" style={{ justifyContent: "center" }}>
+            <Link className="btn btnPrimary" href="/careers">Start</Link>
+            <Link className="btn" href="/about">How to Play</Link>
+          </div>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

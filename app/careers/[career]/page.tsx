@@ -11,6 +11,7 @@ const careerData: Record<
   {
     id: "software-developer" | "nurse" | "electrician";
     title: string;
+    icon: string;
     scenario: string;
     challengePrompt: string;
     correctAnswer: string;
@@ -21,32 +22,35 @@ const careerData: Record<
   "software-developer": {
     id: "software-developer",
     title: "Software Developer",
+    icon: "💻",
     scenario:
       "A feature is failing right before release. You need to confirm the correct UI label and ship the fix.",
-    challengePrompt: "Mini-challenge: Type the word 'start' exactly.",
+    challengePrompt: "Type the word: start",
     correctAnswer: "start",
-    successText: "You shipped the fix. Badge unlocked: software-developer",
-    retryText: "Close—debugging takes iteration. Try again.",
+    successText: "You shipped the fix. Badge unlocked!",
+    retryText: "Close — debugging takes iteration. Try again.",
   },
   nurse: {
     id: "nurse",
     title: "Nurse",
+    icon: "🩺",
     scenario:
       "Two patients need attention. You must prioritize, assess symptoms, and communicate clearly.",
-    challengePrompt: "Mini-challenge: Type the word 'assess' exactly.",
+    challengePrompt: "Type the word: assess",
     correctAnswer: "assess",
-    successText: "You stayed calm and made a safe call. Badge unlocked: nurse",
-    retryText: "Try again—focus on the safest first step.",
+    successText: "You made the safest call. Badge unlocked!",
+    retryText: "Try again — focus on the safest first step.",
   },
   electrician: {
     id: "electrician",
     title: "Electrician",
+    icon: "⚡",
     scenario:
       "A room’s lights flicker. Diagnose the issue while following safety procedures.",
-    challengePrompt: "Mini-challenge: Type 'power off' (two words) exactly.",
+    challengePrompt: "Type the phrase: power off",
     correctAnswer: "power off",
-    successText: "Safety first. Badge unlocked: electrician",
-    retryText: "Try again—always start with safety.",
+    successText: "Safety first. Badge unlocked!",
+    retryText: "Try again — always start with safety.",
   },
 };
 
@@ -57,12 +61,16 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
 
   if (!data) {
     return (
-      <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
-        <h1 style={{ fontSize: 28, marginBottom: 10 }}>Career not found</h1>
-        <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
-          ← Back to Career Hub
-        </Link>
-      </main>
+      <div style={{ padding: "28px 0" }}>
+        <div className="card">
+          <div className="cardInner">
+            <h1 className="h1" style={{ fontSize: 40 }}>Career not found</h1>
+            <p className="p">That world doesn’t exist yet.</p>
+            <div className="spacer" />
+            <Link className="btn btnPrimary" href="/careers">Back to Career Hub</Link>
+          </div>
+        </div>
+      </div>
     );
   }
 
@@ -75,89 +83,83 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
   }
 
   return (
-    <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 34 }}>{data.title} World</h1>
-        <Link href="/careers" style={{ alignSelf: "center", fontWeight: 800, textDecoration: "none" }}>
-          ← Career Hub
-        </Link>
-      </header>
+    <div style={{ padding: "28px 0" }}>
+      <div className="card">
+        <div className="cardInner">
+          <div className="row" style={{ justifyContent: "space-between" }}>
+            <h1 className="h1" style={{ fontSize: 42, marginBottom: 0 }}>
+              {data.icon} {data.title} World
+            </h1>
+            <Link className="btn" href="/careers">Career Hub</Link>
+          </div>
 
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Scenario</h2>
-        <p style={{ lineHeight: 1.6, opacity: 0.9 }}>{data.scenario}</p>
-      </section>
+          <div className="spacer" />
 
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Skill Challenge</h2>
-        <p style={{ marginBottom: 10 }}>{data.challengePrompt}</p>
+          <div className="card" style={{ background: "var(--panel2)" }}>
+            <div className="cardInner">
+              <h2 className="h2">Scenario</h2>
+              <p className="p">{data.scenario}</p>
+            </div>
+          </div>
 
-        <label style={{ display: "block", marginBottom: 8, fontWeight: 800 }} htmlFor="answer">
-          Your answer
-        </label>
+          <div className="spacer" />
 
-        <input
-          id="answer"
-          value={answer}
-          onChange={(e) => setAnswer(e.target.value)}
-          placeholder="Type here…"
-          style={{
-            width: "100%",
-            padding: 10,
-            borderRadius: 10,
-            border: "1px solid #ccc",
-            marginBottom: 10,
-          }}
-        />
+          <div className="card" style={{ background: "var(--panel2)" }}>
+            <div className="cardInner">
+              <h2 className="h2">Skill Challenge</h2>
+              <p className="p" style={{ marginBottom: 12 }}>{data.challengePrompt}</p>
 
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <button
-            onClick={submit}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              fontWeight: 900,
-              cursor: "pointer",
-            }}
-          >
-            Submit
-          </button>
+              <label style={{ display: "block", fontWeight: 900, marginBottom: 8 }} htmlFor="answer">
+                Your answer
+              </label>
 
-          <button
-            onClick={() => {
-              setAnswer("");
-              setOutcome("intro");
-            }}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              fontWeight: 900,
-              cursor: "pointer",
-            }}
-          >
-            Reset
-          </button>
-        </div>
-      </section>
+              <input
+                id="answer"
+                className="input"
+                value={answer}
+                onChange={(e) => setAnswer(e.target.value)}
+                placeholder="Type here…"
+              />
 
-      {outcome !== "intro" && (
-        <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-          <h2 style={{ fontSize: 18, marginBottom: 8 }}>
-            Outcome: {outcome === "success" ? "Success ✅" : "Try Again"}
-          </h2>
-          <p style={{ lineHeight: 1.6 }}>
-            {outcome === "success" ? data.successText : data.retryText}
-          </p>
+              <div className="spacer" />
 
-          {outcome === "success" && (
-            <p style={{ marginTop: 10, opacity: 0.85 }}>
-              Go back to the Career Hub to see your badge.
-            </p>
+              <div className="row">
+                <button className="btn btnPrimary" onClick={submit}>Submit</button>
+                <button
+                  className="btn"
+                  onClick={() => {
+                    setAnswer("");
+                    setOutcome("intro");
+                  }}
+                >
+                  Reset
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {outcome !== "intro" && (
+            <>
+              <div className="spacer" />
+              <div className="card" style={{ background: "var(--panel2)" }}>
+                <div className="cardInner">
+                  <h2 className="h2">
+                    Outcome: {outcome === "success" ? "Success ✅" : "Try Again"}
+                  </h2>
+                  <p className="p">
+                    {outcome === "success" ? data.successText : data.retryText}
+                  </p>
+                  {outcome === "success" && (
+                    <p className="muted" style={{ marginTop: 12 }}>
+                      Go back to the Career Hub to see your badge.
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
           )}
-        </section>
-      )}
-    </main>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -1,6 +1,6 @@
 ﻿export type BadgeId = "software-developer" | "nurse" | "electrician";
 
-const KEY = "careerQuest.badges.v1";
+const KEY = "careerQuest.badges.v2";
 
 export function getBadges(): BadgeId[] {
   if (typeof window === "undefined") return [];
@@ -13,10 +13,6 @@ export function getBadges(): BadgeId[] {
   } catch {
     return [];
   }
-}
-
-export function hasBadge(id: BadgeId): boolean {
-  return getBadges().includes(id);
 }
 
 export function addBadge(id: BadgeId) {
