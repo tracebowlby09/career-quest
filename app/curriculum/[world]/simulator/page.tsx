@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useParams } from "next/navigation";
-import { WORLDS, WorldId } from "../../../lib/worlds";
+import { WORLDS, WorldId, World } from "../../../lib/worlds";
 import { addBadge } from "../../../lib/progress";
 
 type Outcome = "intro" | "pass" | "fail";
@@ -18,7 +18,8 @@ export default function SimulatorPage() {
     return decodeURIComponent(v).trim().toLowerCase();
   }, [params]);
 
-  const world = (WORLDS as Record<string, any>)[slug] as (typeof WORLDS)[WorldId] | undefined;
+  // IMPORTANT: Make a stable local variable that TS can trust after the guard.
+  const world = (WORLDS as Record<string, World>)[slug];
 
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [picked, setPicked] = useState<string>("");
@@ -28,8 +29,12 @@ export default function SimulatorPage() {
     return (
       <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
         <h1>World not found</h1>
-        <p>Requested: <b>{slug || "(empty)"}</b></p>
-        <Link href="/curriculum" style={{ fontWeight: 800, textDecoration: "none" }}>← Curriculum</Link>
+        <p>
+          Requested: <b>{slug || "(empty)"}</b>
+        </p>
+        <Link href="/curriculum" style={{ fontWeight: 800, textDecoration: "none" }}>
+          ← Curriculum
+        </Link>
       </main>
     );
   }
@@ -61,7 +66,9 @@ export default function SimulatorPage() {
   return (
     <main style={{ minHeight: "100vh", padding: 24, maxWidth: 900, margin: "0 auto" }}>
       <header style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <h1 style={{ fontSize: 32, margin: 0 }}>{world.icon} {world.title} Simulator</h1>
+        <h1 style={{ fontSize: 32, margin: 0 }}>
+          {world.icon} {world.title} Simulator
+        </h1>
         <Link href={`/curriculum/${world.id}/questions`} style={{ fontWeight: 800, textDecoration: "none" }}>
           ← Back to Questions
         </Link>
@@ -125,7 +132,10 @@ export default function SimulatorPage() {
             Reset
           </button>
 
-          <Link href="/careers" style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ccc", fontWeight: 900, textDecoration: "none" }}>
+          <Link
+            href="/careers"
+            style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ccc", fontWeight: 900, textDecoration: "none" }}
+          >
             Career Hub
           </Link>
         </div>
@@ -133,9 +143,7 @@ export default function SimulatorPage() {
 
       {outcome !== "intro" && (
         <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-          <h2 style={{ marginTop: 0, fontSize: 18 }}>
-            {outcome === "pass" ? "PASS ✅" : "FAIL ❌"}
-          </h2>
+          <h2 style={{ marginTop: 0, fontSize: 18 }}>{outcome === "pass" ? "PASS ✅" : "FAIL ❌"}</h2>
           <p style={{ margin: 0, lineHeight: 1.6 }}>
             {outcome === "pass" ? world.simulator.passText : world.simulator.failText}
           </p>
