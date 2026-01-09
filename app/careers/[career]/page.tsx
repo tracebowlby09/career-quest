@@ -5,7 +5,6 @@ import { useMemo, useState } from "react";
 import { addBadge } from "../../lib/progress";
 
 type WorldId = "software-developer" | "nurse" | "electrician";
-
 type Option = { id: string; label: string };
 
 type MCQWorld = {
@@ -42,51 +41,53 @@ const WORLDS: Record<string, World> = {
     title: "Software Developer",
     icon: "💻",
     scenario:
-      "Right before release, a bug report says the Start button text is wrong in the UI. You need to pick the correct label to ship the hotfix.",
+      "A release build is blocked because users report the primary button text is incorrect. You need to choose the correct label so the UI matches the spec.",
     type: "mcq",
-    prompt: "Which label should the button use?",
+    prompt: "Which label should the primary button use?",
     options: [
-      { id: "a", label: "Start" },
-      { id: "b", label: "Begin" },
-      { id: "c", label: "Go" },
+      { id: "start", label: "Start" },
+      { id: "begin", label: "Begin" },
+      { id: "launch", label: "Launch" },
     ],
-    correctOptionId: "a",
-    success: "Hotfix shipped. Badge unlocked: software-developer ✅",
-    retry: "Not quite—double-check the expected UI label and try again.",
+    correctOptionId: "start",
+    success: "Nice work — you fixed the UI issue and unblocked the release.",
+    retry: "Not quite — check the spec wording and try again.",
   },
+
   nurse: {
     id: "nurse",
     title: "Nurse",
     icon: "🩺",
     scenario:
-      "Two patients arrive at the same time. You need to choose the safest first step before anything else.",
+      "Two patients arrive at the same time. One is short of breath and looks pale; the other has a minor cut and is stable. You must choose the safest first step.",
     type: "mcq",
     prompt: "What should you do first?",
     options: [
-      { id: "a", label: "Assess the most critical patient first" },
-      { id: "b", label: "Finish paperwork before triage" },
-      { id: "c", label: "Wait for the doctor to arrive" },
+      { id: "assess", label: "Assess the short-of-breath patient first (airway/breathing priority)" },
+      { id: "paperwork", label: "Complete intake paperwork before anything else" },
+      { id: "wait", label: "Wait for the doctor before taking action" },
     ],
-    correctOptionId: "a",
-    success: "You prioritized safely. Badge unlocked: nurse ✅",
-    retry: "Try again—focus on the safest first action in a busy moment.",
+    correctOptionId: "assess",
+    success: "Good call — you prioritized the highest-risk patient first.",
+    retry: "Try again — prioritize the patient with the most urgent symptoms first.",
   },
+
   electrician: {
     id: "electrician",
     title: "Electrician",
     icon: "⚡",
     scenario:
-      "A room’s lights flicker. You must follow safe procedure and put the steps in order.",
+      "Lights flicker in a room and the homeowner reports a burning smell earlier in the day. You must follow safe procedure and order the steps correctly.",
     type: "sequence",
-    prompt: "Put the steps in the safest order:",
+    prompt: "Click the steps in the correct (safest) order:",
     options: [
-      { id: "off", label: "Turn power off at the breaker" },
-      { id: "test", label: "Test that the circuit is de-energized" },
-      { id: "inspect", label: "Inspect wiring / connections" },
+      { id: "breaker", label: "Turn off power at the breaker" },
+      { id: "verify", label: "Verify the circuit is de-energized (test)" },
+      { id: "inspect", label: "Inspect the fixture/wiring and connections" },
     ],
-    correctSequence: ["off", "test", "inspect"],
-    success: "Safety first. Badge unlocked: electrician ✅",
-    retry: "Not quite—remember: power off, then verify, then inspect.",
+    correctSequence: ["breaker", "verify", "inspect"],
+    success: "Perfect — you followed safe procedure before troubleshooting.",
+    retry: "Not quite — remember: shut off power, verify, then inspect.",
   },
 };
 
@@ -124,12 +125,21 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
   }
 
   function toggleSeq(id: string) {
-    setSequence((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
+    setSequence((s) => (s.includes(id) ? s : [...s, id]));
+  }
+
+  function undoLast() {
+    setSequence((s) => s.slice(0, -1));
+  }
+
+  function resetSeq() {
+    setSequence([]);
   }
 
   function submitSequence() {
     addAttempt();
     if (world.type !== "sequence") return;
+
     const ok =
       sequence.length === world.correctSequence.length &&
       sequence.every((v, i) => v === world.correctSequence[i]);
@@ -138,7 +148,7 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
     if (ok) addBadge(world.id);
   }
 
-  function reset() {
+  function resetAll() {
     setOutcome("intro");
     setPicked("");
     setSequence([]);
@@ -157,12 +167,12 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
 
       <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
         <h2 style={{ fontSize: 18, marginBottom: 8 }}>Scenario</h2>
-        <p style={{ lineHeight: 1.6, opacity: 0.9 }}>{world.scenario}</p>
+        <p style={{ lineHeight: 1.6, opacity: 0.9, margin: 0 }}>{world.scenario}</p>
       </section>
 
       <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
-        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Skill Challenge</h2>
-        <p style={{ marginBottom: 10 }}>{world.prompt}</p>
+        <h2 style={{ fontSize: 18, marginBottom: 8 }}>Challenge</h2>
+        <p style={{ marginBottom: 12 }}>{world.prompt}</p>
 
         {world.type === "mcq" ? (
           <div style={{ display: "grid", gap: 10 }}>
@@ -205,8 +215,9 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
               >
                 Submit
               </button>
+
               <button
-                onClick={reset}
+                onClick={resetAll}
                 style={{
                   padding: "10px 14px",
                   borderRadius: 12,
@@ -221,26 +232,30 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
           </div>
         ) : (
           <div style={{ display: "grid", gap: 10 }}>
-            <p style={{ margin: 0, opacity: 0.85 }}>
-              Click steps in order. Your current order:{" "}
-              <span style={{ fontWeight: 900 }}>{sequence.join(" → ") || "(none yet)"}</span>
-            </p>
+            <div style={{ padding: 10, border: "1px solid #ccc", borderRadius: 12 }}>
+              <div style={{ fontWeight: 900, marginBottom: 6 }}>Your order</div>
+              <div style={{ opacity: 0.9 }}>
+                {sequence.length === 0 ? "(click steps below)" : sequence.join(" → ")}
+              </div>
+            </div>
 
             <div style={{ display: "grid", gap: 10 }}>
               {world.options.map((o) => (
                 <button
                   key={o.id}
                   onClick={() => toggleSeq(o.id)}
+                  disabled={sequence.includes(o.id)}
                   style={{
                     textAlign: "left",
                     padding: 10,
                     borderRadius: 12,
                     border: "1px solid #ccc",
                     fontWeight: 800,
-                    cursor: "pointer",
+                    cursor: sequence.includes(o.id) ? "not-allowed" : "pointer",
+                    opacity: sequence.includes(o.id) ? 0.6 : 1,
                   }}
                 >
-                  {sequence.includes(o.id) ? "✅ " : ""}{o.label}
+                  {o.label}
                 </button>
               ))}
             </div>
@@ -248,6 +263,21 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
             <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 6 }}>
               <button
                 onClick={submitSequence}
+                disabled={sequence.length !== world.correctSequence.length}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  border: "1px solid #ccc",
+                  fontWeight: 900,
+                  cursor: sequence.length === world.correctSequence.length ? "pointer" : "not-allowed",
+                  opacity: sequence.length === world.correctSequence.length ? 1 : 0.6,
+                }}
+              >
+                Submit
+              </button>
+
+              <button
+                onClick={undoLast}
                 disabled={sequence.length === 0}
                 style={{
                   padding: "10px 14px",
@@ -258,10 +288,26 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
                   opacity: sequence.length ? 1 : 0.6,
                 }}
               >
-                Submit
+                Undo
               </button>
+
               <button
-                onClick={reset}
+                onClick={resetSeq}
+                disabled={sequence.length === 0}
+                style={{
+                  padding: "10px 14px",
+                  borderRadius: 12,
+                  border: "1px solid #ccc",
+                  fontWeight: 900,
+                  cursor: sequence.length ? "pointer" : "not-allowed",
+                  opacity: sequence.length ? 1 : 0.6,
+                }}
+              >
+                Clear
+              </button>
+
+              <button
+                onClick={resetAll}
                 style={{
                   padding: "10px 14px",
                   borderRadius: 12,
@@ -270,7 +316,7 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
                   cursor: "pointer",
                 }}
               >
-                Reset
+                Reset All
               </button>
             </div>
           </div>
@@ -280,10 +326,12 @@ export default function CareerWorld({ params }: { params: { career: string } }) 
       {outcome !== "intro" && (
         <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 14, padding: 16 }}>
           <h2 style={{ fontSize: 18, marginBottom: 8 }}>
-            Outcome: {outcome === "success" ? "Success ✅" : "Try Again"}
+            {outcome === "success" ? "Success ✅" : "Try Again"}
           </h2>
-          <p style={{ lineHeight: 1.6 }}>{outcome === "success" ? world.success : world.retry}</p>
-          <p style={{ marginTop: 10, opacity: 0.8 }}>Attempts this session: <b>{attempts}</b></p>
+          <p style={{ lineHeight: 1.6, margin: 0 }}>{outcome === "success" ? world.success : world.retry}</p>
+          <p style={{ marginTop: 10, opacity: 0.8, marginBottom: 0 }}>
+            Attempts this session: <b>{attempts}</b>
+          </p>
         </section>
       )}
     </main>
