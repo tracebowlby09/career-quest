@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { useParams } from "next/navigation";
+
+      param($m)
+      $inside = $m.Groups[1].Value.Trim()
+      if ($inside -match '\bnotFound\b') { $m.Value } else { "import { $inside, notFound } from `"next/navigation`";" }
+    
 import { WORLDS, WorldId, World } from "../../../lib/worlds";
 import { addBadge } from "../../../lib/progress";
 
@@ -21,6 +25,7 @@ export default function SimulatorPage() {
   // IMPORTANT: Make a stable local variable that TS can trust after the guard.
   const world = (WORLDS as Record<string, World>)[slug];
 
+  if (!world) notFound();
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [picked, setPicked] = useState<string>("");
   const [sequence, setSequence] = useState<string[]>([]);
@@ -157,3 +162,4 @@ export default function SimulatorPage() {
     </main>
   );
 }
+

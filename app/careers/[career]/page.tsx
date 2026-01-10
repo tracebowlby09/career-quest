@@ -1,10 +1,14 @@
 ﻿"use client";
 
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { useMemo, useState } from "react";
+import { notFound } from "next/navigation";
 import { addBadge } from "../../lib/progress";
+import { notFound } from "next/navigation";
 import { page, shell, card, topbar, h1, p, btn, btnPrimary, input, tag } from "../../ui/styles";
 
+import { notFound } from "next/navigation";
 type Outcome = "intro" | "success" | "retry";
 
 type World = {
@@ -53,6 +57,7 @@ const WORLDS: Record<string, World> = {
 
 export default function CareerWorld({ params }: { params: { career?: string } }) {
   const world = useMemo(() => (params?.career ? WORLDS[params.career] : undefined), [params?.career]);
+  if (!world) notFound();
   const [outcome, setOutcome] = useState<Outcome>("intro");
   const [answer, setAnswer] = useState("");
 
@@ -143,3 +148,4 @@ export default function CareerWorld({ params }: { params: { career?: string } })
     </main>
   );
 }
+
