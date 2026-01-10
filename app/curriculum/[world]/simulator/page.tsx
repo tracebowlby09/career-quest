@@ -1,16 +1,16 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { addBadge } from "../../../lib/progress";
 import { getWorld } from "../../../lib/worlds";
 
 type Outcome = "playing" | "pass" | "fail";
 
 export default function SimulatorPage({ params }: { params: { world?: string } }) {
-  const world = useMemo(() => getWorld(params.world), [params.world]);
+  // ✅ NO useMemo (avoids TS “possibly undefined” capture issues)
+  const world = getWorld(params.world);
 
-  // ✅ Client-safe "not found" handling + fixes TS 'world possibly undefined'
   if (!world) {
     return (
       <main style={{ minHeight: "100vh", padding: 24, maxWidth: 980, margin: "0 auto" }}>
@@ -25,6 +25,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
     );
   }
 
+  // ✅ world is guaranteed defined below this line
   const sim = world.simulator;
 
   const [outcome, setOutcome] = useState<Outcome>("playing");
@@ -45,10 +46,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
       return;
     }
 
-    // sim.type === "sequence"
-    const target = sim.correctSequence.join("|");
-    const attempt = sequence.join("|");
-    const ok = attempt === target;
+    const ok = sequence.join("|") === sim.correctSequence.join("|");
     setOutcome(ok ? "pass" : "fail");
     if (ok) addBadge(world.id);
   }
@@ -57,10 +55,6 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
     if (sim.type !== "sequence") return;
     if (outcome !== "playing") return;
     setSequence((prev) => (prev.includes(stepId) ? prev : [...prev, stepId]));
-  }
-
-  function undoStep() {
-    setSequence((prev) => prev.slice(0, -1));
   }
 
   const canSubmit =
@@ -87,7 +81,6 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Simulator Challenge</h2>
         <p style={{ marginTop: 0, marginBottom: 12, fontWeight: 800 }}>{sim.prompt}</p>
 
-        {/* ✅ Inline narrowing so TS knows options exist */}
         {sim.type === "mcq" && (
           <div style={{ display: "grid", gap: 10 }}>
             {sim.options.map((o) => (
@@ -118,67 +111,29 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
           </div>
         )}
 
-        {/* ✅ Inline narrowing so TS knows steps exist */}
         {sim.type === "sequence" && (
-          <div>
-            <div style={{ display: "grid", gap: 10 }}>
-              {sim.steps.map((s) => {
-                const chosen = sequence.includes(s.id);
-                return (
-                  <button
-                    key={s.id}
-                    onClick={() => pickStep(s.id)}
-                    disabled={outcome !== "playing" || chosen}
-                    style={{
-                      textAlign: "left",
-                      padding: 12,
-                      borderRadius: 12,
-                      border: "1px solid #ccc",
-                      fontWeight: 900,
-                      cursor: outcome === "playing" && !chosen ? "pointer" : "not-allowed",
-                      opacity: chosen ? 0.65 : 1,
-                    }}
-                  >
-                    {chosen ? "✅ " : ""}{s.label}
-                  </button>
-                );
-              })}
-            </div>
-
-            <div style={{ marginTop: 12, padding: 12, borderRadius: 12, border: "1px dashed #bbb" }}>
-              <div style={{ fontWeight: 900, marginBottom: 8 }}>Your order:</div>
-              {sequence.length === 0 ? (
-                <div style={{ opacity: 0.8 }}>Pick steps above…</div>
-              ) : (
-                <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
-                  {sequence.map((id) => {
-                    const label = sim.steps.find((x) => x.id === id)?.label ?? id;
-                    return (
-                      <li key={id} style={{ fontWeight: 800 }}>
-                        {label}
-                      </li>
-                    );
-                  })}
-                </ol>
-              )}
-
-              <div style={{ marginTop: 10, display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ display: "grid", gap: 10 }}>
+            {sim.steps.map((s) => {
+              const chosen = sequence.includes(s.id);
+              return (
                 <button
-                  onClick={undoStep}
-                  disabled={outcome !== "playing" || sequence.length === 0}
-                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ccc", fontWeight: 900, cursor: "pointer" }}
+                  key={s.id}
+                  onClick={() => pickStep(s.id)}
+                  disabled={outcome !== "playing" || chosen}
+                  style={{
+                    textAlign: "left",
+                    padding: 12,
+                    borderRadius: 12,
+                    border: "1px solid #ccc",
+                    fontWeight: 900,
+                    cursor: outcome === "playing" && !chosen ? "pointer" : "not-allowed",
+                    opacity: chosen ? 0.65 : 1,
+                  }}
                 >
-                  Undo Last
+                  {chosen ? "✅ " : ""}{s.label}
                 </button>
-                <button
-                  onClick={() => setSequence([])}
-                  disabled={outcome !== "playing" || sequence.length === 0}
-                  style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ccc", fontWeight: 900, cursor: "pointer" }}
-                >
-                  Clear
-                </button>
-              </div>
-            </div>
+              );
+            })}
           </div>
         )}
 
