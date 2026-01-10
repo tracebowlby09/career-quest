@@ -88,3 +88,7 @@ export function getWorld(id: string | undefined) {
   if (!id) return undefined;
   return WORLDS.find((w) => w.id === id);
 }
+
+export function worldIds() {
+  return Object.keys(WORLDS);
+}
