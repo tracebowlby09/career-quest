@@ -1,30 +1,36 @@
-﻿import { Card, Container, Header, Row, TextLink, Pill } from "./components/ui";
+﻿import Link from "next/link";
+import { page, shell, card, h1, p, btn, btnPrimary, tag } from "./ui/styles";
 
 export default function Home() {
   return (
-    <Container>
-      <Header
-        title="Career Quest"
-        subtitle="Three career worlds. Learn → practice → simulate. Earn badges as you pass."
-        right={<Pill>Regionals ready mode</Pill>}
-      />
+    <main style={page}>
+      <div style={shell}>
+        <div style={{ ...card, padding: 22 }}>
+          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
+            <span style={tag}>🎮 Career Quest</span>
+            <span style={{ ...tag, opacity: 0.8 }}>3 Worlds • Badges</span>
+          </div>
 
-      <Card>
-        <div style={{ fontSize: 18, lineHeight: 1.6, opacity: 0.85 }}>
-          Pick a world, read the curriculum, answer a few questions, then take a short simulator to pass or fail.
+          <h1 style={{ ...h1, marginTop: 14 }}>Train for the real world.</h1>
+          <p style={{ ...p, marginTop: 10, fontSize: 18, maxWidth: 780 }}>
+            Pick a career world → learn the basics → answer questions → enter the simulator → pass or fail.
+            Earn badges as proof you finished each world.
+          </p>
+
+          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
+            <Link href="/careers" style={btnPrimary}>
+              Start
+            </Link>
+            <Link href="/about" style={btn}>
+              How to Play
+            </Link>
+          </div>
+
+          <div style={{ marginTop: 18, opacity: 0.75, fontSize: 13, lineHeight: 1.5 }}>
+            Tip: Badges save on this device. Use Career Hub → Reset if you want a fresh run.
+          </div>
         </div>
-
-        <div style={{ height: 14 }} />
-
-        <Row>
-          <TextLink href="/careers">▶ Start</TextLink>
-          <TextLink href="/about">ℹ How to Play</TextLink>
-        </Row>
-      </Card>
-
-      <div style={{ marginTop: 14, opacity: 0.7, fontSize: 13 }}>
-        Tip: Badges save on this device (localStorage).
       </div>
-    </Container>
+    </main>
   );
 }

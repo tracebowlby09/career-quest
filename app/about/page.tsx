@@ -1,30 +1,28 @@
-﻿import { Card, CardTitle, Container, Header, TextLink, Pill } from "../components/ui";
+﻿import Link from "next/link";
+import { page, shell, card, h1, p, btn } from "../ui/styles";
 
-export default function Page() {
+export default function AboutPage() {
   return (
-    <Container>
-      <Header
-        title="How to Play"
-        subtitle="Each world is a short learning loop that ends in a simulator."
-        right={<TextLink href="/careers">← Career Hub</TextLink>}
-      />
+    <main style={page}>
+      <div style={shell}>
+        <div style={card}>
+          <h1 style={h1}>How to Play</h1>
+          <p style={{ ...p, marginTop: 10, fontSize: 18 }}>
+            Each world has a short learning section, a quick quiz, then a simulator challenge. Pass to earn a badge.
+          </p>
 
-      <Card>
-        <CardTitle>Flow</CardTitle>
-        <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.9, opacity: 0.88 }}>
-          <li><b>Curriculum</b> — learn the basics for that career.</li>
-          <li><b>Questions</b> — quick checks for understanding.</li>
-          <li><b>Simulator</b> — one short “real-life” decision.</li>
-          <li><b>Pass / Fail</b> — pass earns a badge. Fail lets you retry.</li>
-        </ol>
+          <ul style={{ marginTop: 14, paddingLeft: 18, lineHeight: 1.9, opacity: 0.9 }}>
+            <li><b>Learn:</b> read the curriculum for the job.</li>
+            <li><b>Questions:</b> answer a few checks for understanding.</li>
+            <li><b>Simulator:</b> complete the scenario challenge.</li>
+            <li><b>Badges:</b> earn one per world.</li>
+          </ul>
 
-        <div style={{ height: 14 }} />
-
-        <CardTitle>Controls</CardTitle>
-        <div style={{ opacity: 0.85, lineHeight: 1.6 }}>
-          Keyboard-friendly: <Pill>Tab</Pill> to move, <Pill>Enter</Pill> to activate buttons/links.
+          <div style={{ marginTop: 16 }}>
+            <Link href="/careers" style={btn}>← Back to Career Hub</Link>
+          </div>
         </div>
-      </Card>
-    </Container>
+      </div>
+    </main>
   );
 }
