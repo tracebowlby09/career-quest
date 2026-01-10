@@ -1,7 +1,6 @@
 ﻿"use client";
 
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { useMemo, useState } from "react";
 import { addBadge } from "../../../lib/progress";
 import { getWorld } from "../../../lib/worlds";
@@ -11,8 +10,22 @@ type Outcome = "playing" | "pass" | "fail";
 export default function SimulatorPage({ params }: { params: { world?: string } }) {
   const world = useMemo(() => getWorld(params.world), [params.world]);
 
-  // HARD STOP: fixes "'world' possibly undefined" everywhere
-  if (!world) notFound();
+  // ✅ Client-safe "not found" handling + fixes TS 'world possibly undefined'
+  if (!world) {
+    return (
+      <main style={{ minHeight: "100vh", padding: 24, maxWidth: 980, margin: "0 auto" }}>
+        <h1 style={{ fontSize: 28, marginBottom: 10 }}>World not found</h1>
+        <p style={{ opacity: 0.85, marginTop: 0 }}>
+          Requested: {params.world ? params.world : "(empty)"}
+        </p>
+        <Link href="/careers" style={{ fontWeight: 900, textDecoration: "none" }}>
+          ← Back to Career Hub
+        </Link>
+      </main>
+    );
+  }
+
+  const sim = world.simulator;
 
   const [outcome, setOutcome] = useState<Outcome>("playing");
   const [picked, setPicked] = useState<string>("");
@@ -25,15 +38,15 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
   }
 
   function submit() {
-    if (world.simulator.type === "mcq") {
-      const ok = picked === world.simulator.correctOptionId;
+    if (sim.type === "mcq") {
+      const ok = picked === sim.correctOptionId;
       setOutcome(ok ? "pass" : "fail");
       if (ok) addBadge(world.id);
       return;
     }
 
-    // sequence
-    const target = world.simulator.correctSequence.join("|");
+    // sim.type === "sequence"
+    const target = sim.correctSequence.join("|");
     const attempt = sequence.join("|");
     const ok = attempt === target;
     setOutcome(ok ? "pass" : "fail");
@@ -41,7 +54,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
   }
 
   function pickStep(stepId: string) {
-    if (world.simulator.type !== "sequence") return;
+    if (sim.type !== "sequence") return;
     if (outcome !== "playing") return;
     setSequence((prev) => (prev.includes(stepId) ? prev : [...prev, stepId]));
   }
@@ -50,8 +63,9 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
     setSequence((prev) => prev.slice(0, -1));
   }
 
-  const isMCQ = world.simulator.type === "mcq";
-  const isSequence = world.simulator.type === "sequence";
+  const canSubmit =
+    outcome === "playing" &&
+    (sim.type === "mcq" ? picked !== "" : sequence.length > 0);
 
   return (
     <main style={{ minHeight: "100vh", padding: 24, maxWidth: 980, margin: "0 auto" }}>
@@ -59,7 +73,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
         <h1 style={{ fontSize: 34, margin: 0 }}>
           {world.icon} {world.title} — Simulator
         </h1>
-        <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
+        <Link href="/careers" style={{ fontWeight: 900, textDecoration: "none" }}>
           ← Career Hub
         </Link>
       </header>
@@ -71,11 +85,12 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
 
       <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 16, padding: 16 }}>
         <h2 style={{ marginTop: 0, fontSize: 18 }}>Simulator Challenge</h2>
-        <p style={{ marginTop: 0, marginBottom: 12, fontWeight: 700 }}>{world.simulator.prompt}</p>
+        <p style={{ marginTop: 0, marginBottom: 12, fontWeight: 800 }}>{sim.prompt}</p>
 
-        {isMCQ && (
+        {/* ✅ Inline narrowing so TS knows options exist */}
+        {sim.type === "mcq" && (
           <div style={{ display: "grid", gap: 10 }}>
-            {world.simulator.options.map((o) => (
+            {sim.options.map((o) => (
               <label
                 key={o.id}
                 style={{
@@ -97,16 +112,17 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
                   onChange={() => setPicked(o.id)}
                   disabled={outcome !== "playing"}
                 />
-                <span style={{ fontWeight: 700 }}>{o.label}</span>
+                <span style={{ fontWeight: 800 }}>{o.label}</span>
               </label>
             ))}
           </div>
         )}
 
-        {isSequence && (
+        {/* ✅ Inline narrowing so TS knows steps exist */}
+        {sim.type === "sequence" && (
           <div>
             <div style={{ display: "grid", gap: 10 }}>
-              {world.simulator.steps.map((s) => {
+              {sim.steps.map((s) => {
                 const chosen = sequence.includes(s.id);
                 return (
                   <button
@@ -118,7 +134,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
                       padding: 12,
                       borderRadius: 12,
                       border: "1px solid #ccc",
-                      fontWeight: 800,
+                      fontWeight: 900,
                       cursor: outcome === "playing" && !chosen ? "pointer" : "not-allowed",
                       opacity: chosen ? 0.65 : 1,
                     }}
@@ -136,8 +152,12 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
               ) : (
                 <ol style={{ margin: 0, paddingLeft: 18, lineHeight: 1.8 }}>
                   {sequence.map((id) => {
-                    const label = world.simulator.steps.find((x) => x.id === id)?.label ?? id;
-                    return <li key={id} style={{ fontWeight: 700 }}>{label}</li>;
+                    const label = sim.steps.find((x) => x.id === id)?.label ?? id;
+                    return (
+                      <li key={id} style={{ fontWeight: 800 }}>
+                        {label}
+                      </li>
+                    );
                   })}
                 </ol>
               )}
@@ -165,7 +185,7 @@ export default function SimulatorPage({ params }: { params: { world?: string } }
         <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
           <button
             onClick={submit}
-            disabled={outcome !== "playing" || (isMCQ ? picked === "" : sequence.length === 0)}
+            disabled={!canSubmit}
             style={{ padding: "10px 14px", borderRadius: 12, border: "1px solid #ccc", fontWeight: 900, cursor: "pointer" }}
           >
             Submit
