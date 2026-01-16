@@ -86,7 +86,9 @@ export default function SimulatorPage({
     );
   }
 
-  function resetAttempt() {
+  const w = world;
+
+ {
     setSelectedOption(null);
     setSequence([]);
     setResult(null);
@@ -96,16 +98,16 @@ export default function SimulatorPage({
     if (!selectedOption) return;
     const passed = selectedOption === correctOptionId;
     setResult(passed ? "pass" : "fail");
-    if (passed) addBadge(world.id);
+    if (passed) addBadge(w.id);
   }
 
   function onSubmitSequence(sim: SimulatorSequence) {
     const passed = arraysEqual(sequence, sim.correctSequence);
     setResult(passed ? "pass" : "fail");
-    if (passed) addBadge(world.id);
+    if (passed) addBadge(w.id);
   }
 
-  const sim = world.simulator;
+  const sim = w.simulator;
 
   return (
     <main style={container}>
@@ -126,7 +128,7 @@ export default function SimulatorPage({
           </div>
 
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <Link href={`/curriculum/${world.id}/questions`} style={button}>
+            <Link href={`/curriculum/${w.id}/questions`} style={button}>
               Back to Questions
             </Link>
             <Link href="/careers" style={button}>
