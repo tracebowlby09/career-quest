@@ -1,28 +1,58 @@
-﻿import type { WorldId } from "./worlds";
+import type { WorldId } from "./worlds";
 
-const KEY = "careerQuest.badges.v2";
+export type BadgeId = WorldId;
 
-export function getBadges(): WorldId[] {
-  if (typeof window === "undefined") return [];
+const STORAGE_KEY = "careerQuest.badges.v1";
+
+function safeParseBadges(raw: string | null): BadgeId[] {
+  if (!raw) return [];
   try {
-    const raw = window.localStorage.getItem(KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
+    const parsed: unknown = JSON.parse(raw);
     if (!Array.isArray(parsed)) return [];
-    return parsed as WorldId[];
+    return parsed.filter((x): x is BadgeId => typeof x === "string") as BadgeId[];
   } catch {
     return [];
   }
 }
 
-export function addBadge(id: WorldId) {
-  if (typeof window === "undefined") return;
-  const current = new Set(getBadges());
-  current.add(id);
-  window.localStorage.setItem(KEY, JSON.stringify(Array.from(current)));
+function safeRead(): BadgeId[] {
+  if (typeof window === "undefined") return [];
+  try {
+    return safeParseBadges(window.localStorage.getItem(STORAGE_KEY));
+  } catch {
+    return [];
+  }
 }
 
-export function clearBadges() {
+function safeWrite(badges: BadgeId[]): void {
   if (typeof window === "undefined") return;
-  window.localStorage.removeItem(KEY);
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(badges));
+  } catch {
+    // ignore write failures
+  }
+}
+
+export function getBadges(): BadgeId[] {
+  return safeRead();
+}
+
+export function hasBadge(id: BadgeId): boolean {
+  const badges = safeRead();
+  return badges.includes(id);
+}
+
+export function addBadge(id: BadgeId): void {
+  const badges = safeRead();
+  if (badges.includes(id)) return;
+  safeWrite([...badges, id]);
+}
+
+export function clearBadges(): void {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // ignore
+  }
 }

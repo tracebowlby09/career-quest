@@ -1,36 +1,61 @@
-﻿import Link from "next/link";
-import { page, shell, card, h1, p, btn, btnPrimary, tag } from "./ui/styles";
+import Link from "next/link";
 
-export default function Home() {
+const container: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
+};
+
+const card: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 900,
+  border: "1px solid #e5e7eb",
+  borderRadius: 16,
+  padding: 24,
+};
+
+const buttonRow: React.CSSProperties = {
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  marginTop: 16,
+};
+
+const button: React.CSSProperties = {
+  display: "inline-block",
+  padding: "10px 14px",
+  border: "1px solid #111827",
+  borderRadius: 12,
+  textDecoration: "none",
+  color: "#111827",
+  fontWeight: 600,
+};
+
+export default function HomePage() {
   return (
-    <main style={page}>
-      <div style={shell}>
-        <div style={{ ...card, padding: 22 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 10 }}>
-            <span style={tag}>🎮 Career Quest</span>
-            <span style={{ ...tag, opacity: 0.8 }}>3 Worlds • Badges</span>
-          </div>
-
-          <h1 style={{ ...h1, marginTop: 14 }}>Train for the real world.</h1>
-          <p style={{ ...p, marginTop: 10, fontSize: 18, maxWidth: 780 }}>
-            Pick a career world → learn the basics → answer questions → enter the simulator → pass or fail.
-            Earn badges as proof you finished each world.
-          </p>
-
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap", marginTop: 18 }}>
-            <Link href="/careers" style={btnPrimary}>
-              Start
-            </Link>
-            <Link href="/about" style={btn}>
-              How to Play
-            </Link>
-          </div>
-
-          <div style={{ marginTop: 18, opacity: 0.75, fontSize: 13, lineHeight: 1.5 }}>
-            Tip: Badges save on this device. Use Career Hub → Reset if you want a fresh run.
-          </div>
+    <main style={container}>
+      <section style={card}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <h1 style={{ fontSize: 36, margin: 0 }}>Career Quest</h1>
+          <span style={{ fontSize: 18, opacity: 0.7 }}>Web Game</span>
         </div>
-      </div>
+
+        <p style={{ marginTop: 12, fontSize: 16, lineHeight: 1.6 }}>
+          Explore careers by learning quick essentials, passing a quiz, and completing a
+          short simulator scenario. Earn a badge for each world you complete.
+        </p>
+
+        <div style={buttonRow}>
+          <Link href="/careers" style={button}>
+            Start
+          </Link>
+          <Link href="/about" style={button}>
+            How to Play
+          </Link>
+        </div>
+      </section>
     </main>
   );
 }

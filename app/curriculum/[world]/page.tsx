@@ -1,84 +1,85 @@
-﻿import Link from "next/link";
-import { notFound } from "next/navigation";
+import Link from "next/link";
 import { getWorld } from "../../lib/worlds";
 
-export default function CurriculumWorldPage({ params }: { params: { world: string } }) {
-  const world = getWorld(params.world);
-  if (!world) return notFound();
+const container: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
+};
 
-  // curriculum is string[] (first line = summary, rest = key points)
-  const curriculum = Array.isArray(world.curriculum) ? world.curriculum : [];
-  const summary = curriculum[0] ?? "Complete the questions to build expertise and unlock the simulator.";
-  const points = curriculum.slice(1);
+const card: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 900,
+  border: "1px solid #e5e7eb",
+  borderRadius: 16,
+  padding: 24,
+};
+
+const buttonRow: React.CSSProperties = {
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  marginTop: 16,
+};
+
+const button: React.CSSProperties = {
+  display: "inline-block",
+  padding: "10px 14px",
+  border: "1px solid #111827",
+  borderRadius: 12,
+  textDecoration: "none",
+  color: "#111827",
+  fontWeight: 600,
+};
+
+export default function CurriculumWorldPage({
+  params,
+}: {
+  params: { world: string };
+}) {
+  const world = getWorld(params.world);
+
+  if (!world) {
+    return (
+      <main style={container}>
+        <section style={card}>
+          <h1 style={{ marginTop: 0, fontSize: 28 }}>World not found</h1>
+          <p style={{ lineHeight: 1.6 }}>
+            We couldn’t find that career world. Please return to the Career Hub and
+            choose one of the available worlds.
+          </p>
+          <Link href="/careers" style={button}>
+            Back to Career Hub
+          </Link>
+        </section>
+      </main>
+    );
+  }
 
   return (
-    <main style={{ minHeight: "100vh", padding: 24, maxWidth: 980, margin: "0 auto" }}>
-      <header style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-        <div>
-          <h1 style={{ fontSize: 36, margin: 0 }}>{world.title}: Curriculum</h1>
-          <p style={{ opacity: 0.85, marginTop: 6 }}>
-            Learn the basics first, then jump into questions and the simulator.
-          </p>
+    <main style={container}>
+      <section style={card}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10 }}>
+          <h1 style={{ marginTop: 0, fontSize: 28 }}>
+            {world.icon} {world.title}
+          </h1>
+          <span style={{ opacity: 0.75 }}>Step 1: Curriculum</span>
         </div>
 
-        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-          <Link href="/careers" style={{ fontWeight: 800, textDecoration: "none" }}>
-            ← Careers
-          </Link>
-          <Link href={`/curriculum/${world.id}/questions`} style={{ fontWeight: 800, textDecoration: "none" }}>
-            Start Questions →
-          </Link>
-        </div>
-      </header>
+        <ul style={{ lineHeight: 1.9, marginTop: 10 }}>
+          {world.curriculum.map((point, idx) => (
+            <li key={idx}>{point}</li>
+          ))}
+        </ul>
 
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 16, padding: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Summary</h2>
-        <p style={{ lineHeight: 1.6, opacity: 0.9, marginBottom: 14 }}>{summary}</p>
-
-        <h3 style={{ marginTop: 0 }}>Key Points</h3>
-        {points.length === 0 ? (
-          <p style={{ opacity: 0.85, margin: 0 }}>No key points added yet.</p>
-        ) : (
-          <ul style={{ lineHeight: 1.8, marginTop: 8 }}>
-            {points.map((p: string, i: number) => (
-              <li key={i}>{p}</li>
-            ))}
-          </ul>
-        )}
-      </section>
-
-      <section style={{ marginTop: 14, border: "1px solid #ddd", borderRadius: 16, padding: 16 }}>
-        <h2 style={{ marginTop: 0 }}>Flow</h2>
-        <ol style={{ lineHeight: 1.9, margin: 0, paddingLeft: 18 }}>
-          <li>Curriculum (you are here)</li>
-          <li>Questions (earn expertise)</li>
-          <li>Simulator (pass/fail)</li>
-        </ol>
-
-        <div style={{ marginTop: 14, display: "flex", gap: 10, flexWrap: "wrap" }}>
-          <Link
-            href={`/curriculum/${world.id}/questions`}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              fontWeight: 900,
-              textDecoration: "none",
-            }}
-          >
+        <div style={buttonRow}>
+          <Link href={`/curriculum/${world.id}/questions`} style={button}>
             Start Questions
           </Link>
-          <Link
-            href={`/curriculum/${world.id}/simulator`}
-            style={{
-              padding: "10px 14px",
-              borderRadius: 12,
-              border: "1px solid #ccc",
-              fontWeight: 900,
-              textDecoration: "none",
-            }}
-          >
-            Go to Simulator
+          <Link href="/careers" style={button}>
+            Back to Hub
           </Link>
         </div>
       </section>

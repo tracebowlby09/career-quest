@@ -1,92 +1,170 @@
-﻿"use client";
+"use client";
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
-import { clearBadges, getBadges } from "../lib/progress";
-import { page, shell, card, topbar, h1, p, btn, btnPrimary, tag, grid2, col12, col6 } from "../ui/styles";
+import { WORLDS, worldIds, type WorldId } from "../lib/worlds";
+import { clearBadges, getBadges, type BadgeId } from "../lib/progress";
 
-const WORLDS = [
-  { id: "software-developer", title: "Software Developer", icon: "💻", tagline: "Debug and ship a fix." },
-  { id: "nurse", title: "Nurse", icon: "🩺", tagline: "Prioritize care and communicate." },
-  { id: "electrician", title: "Electrician", icon: "⚡", tagline: "Diagnose safely and repair." },
-] as const;
+const container: React.CSSProperties = {
+  minHeight: "100vh",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  padding: 24,
+};
 
-type WorldId = (typeof WORLDS)[number]["id"];
+const card: React.CSSProperties = {
+  width: "100%",
+  maxWidth: 900,
+  border: "1px solid #e5e7eb",
+  borderRadius: 16,
+  padding: 24,
+};
+
+const grid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+  gap: 12,
+  marginTop: 12,
+};
+
+const tile: React.CSSProperties = {
+  border: "1px solid #e5e7eb",
+  borderRadius: 14,
+  padding: 14,
+  textDecoration: "none",
+  color: "#111827",
+  display: "block",
+};
+
+const button: React.CSSProperties = {
+  display: "inline-block",
+  padding: "10px 14px",
+  border: "1px solid #111827",
+  borderRadius: 12,
+  textDecoration: "none",
+  color: "#111827",
+  fontWeight: 600,
+  background: "transparent",
+  cursor: "pointer",
+};
+
+function tagline(id: WorldId): string {
+  switch (id) {
+    case "electrician":
+      return "Work safe and solve power problems.";
+    case "programmer":
+      return "Debug code and match the spec.";
+    case "nurse":
+      return "Prioritize care and assess symptoms.";
+    default: {
+      const _exhaustive: never = id;
+      return String(_exhaustive);
+    }
+  }
+}
 
 export default function CareersPage() {
-  const [badges, setBadges] = useState<string[]>([]);
+  const [badges, setBadges] = useState<BadgeId[]>([]);
 
   useEffect(() => {
     setBadges(getBadges());
   }, []);
 
-  const completeCount = useMemo(() => badges.length, [badges]);
+  const ids = useMemo(() => worldIds(), []);
 
-  function resetProgress() {
+  function onReset() {
     clearBadges();
     setBadges([]);
   }
 
   return (
-    <main style={page}>
-      <div style={shell}>
-        <div style={topbar}>
+    <main style={container}>
+      <section style={card}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            gap: 12,
+            flexWrap: "wrap",
+          }}
+        >
           <div>
-            <h1 style={h1}>Career Hub</h1>
-            <p style={{ ...p, marginTop: 6 }}>Choose a world. Earn badges by passing the simulator.</p>
+            <h1 style={{ fontSize: 28, marginTop: 0, marginBottom: 6 }}>
+              Career Hub
+            </h1>
+            <div style={{ opacity: 0.75 }}>
+              Choose a world. Earn badges by completing curriculum, questions, and the
+              simulator.
+            </div>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
-            <Link href="/" style={btn}>← Title</Link>
-            <button onClick={resetProgress} style={btn} title="Clears badges saved on this device">
+
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <Link href="/" style={button}>
+              Home
+            </Link>
+            <Link href="/about" style={button}>
+              How to Play
+            </Link>
+          </div>
+        </div>
+
+        <div style={grid}>
+          {ids.map((id) => {
+            const world = WORLDS[id];
+            const completed = badges.includes(id);
+            return (
+              <Link key={id} href={`/curriculum/${id}`} style={tile}>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 10,
+                  }}
+                >
+                  <div style={{ fontSize: 20, fontWeight: 800 }}>
+                    <span style={{ marginRight: 8 }}>{world.icon}</span>
+                    {world.title}
+                  </div>
+                  <div style={{ fontSize: 16 }}>{completed ? "✅" : ""}</div>
+                </div>
+                <div style={{ marginTop: 8, opacity: 0.8 }}>{tagline(id)}</div>
+              </Link>
+            );
+          })}
+        </div>
+
+        <div
+          style={{
+            marginTop: 18,
+            borderTop: "1px solid #e5e7eb",
+            paddingTop: 16,
+          }}
+        >
+          <h2 style={{ fontSize: 18, margin: 0 }}>Your Badges</h2>
+
+          {badges.length === 0 ? (
+            <p style={{ marginTop: 8, opacity: 0.75 }}>
+              No badges yet. Complete a world to earn your first badge.
+            </p>
+          ) : (
+            <ul style={{ marginTop: 8, lineHeight: 1.8 }}>
+              {badges.map((id) => (
+                <li key={id}>
+                  <strong>{WORLDS[id].icon}</strong> {WORLDS[id].title}
+                </li>
+              ))}
+            </ul>
+          )}
+
+          <div style={{ marginTop: 12 }}>
+            <button type="button" onClick={onReset} style={button}>
               Reset Badges
             </button>
           </div>
         </div>
-
-        <div style={{ ...card, marginBottom: 12 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-            <span style={tag}>🏅 Badges: {completeCount}/3</span>
-            <span style={{ ...tag, opacity: 0.85 }}>
-              {badges.includes("software-developer") ? "💻" : "▫️"}
-              {badges.includes("nurse") ? "🩺" : "▫️"}
-              {badges.includes("electrician") ? "⚡" : "▫️"}
-            </span>
-          </div>
-          <p style={{ ...p, marginTop: 10 }}>
-            Your badges show completion. If a world says “not found”, it means the route id doesn’t match.
-          </p>
-        </div>
-
-        <div style={grid2}>
-          {WORLDS.map((w) => {
-            const done = badges.includes(w.id);
-            return (
-              <div key={w.id} style={{ ...card, ...(col6 as any) }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 10 }}>
-                  <div>
-                    <div style={{ fontSize: 28 }}>{w.icon}</div>
-                    <h2 style={{ fontSize: 20, margin: "6px 0 0 0" }}>{w.title}</h2>
-                    <p style={{ ...p, marginTop: 6 }}>{w.tagline}</p>
-                  </div>
-                  <span style={tag}>{done ? "✅ Completed" : "⏳ Not yet"}</span>
-                </div>
-
-                <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginTop: 14 }}>
-                  <Link href={`/careers/${w.id}`} style={btnPrimary}>
-                    Enter World →
-                  </Link>
-                </div>
-              </div>
-            );
-          })}
-
-          <div style={{ ...card, ...(col12 as any) }}>
-            <p style={p}>
-              Next: we’ll add “Curriculum → Questions → Simulator” pages per world. For now, each world page is the simulator entry.
-            </p>
-          </div>
-        </div>
-      </div>
+      </section>
     </main>
   );
 }

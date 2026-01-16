@@ -1,4 +1,4 @@
-﻿export type WorldId = "electrician" | "programmer" | "nurse";
+export type WorldId = "electrician" | "programmer" | "nurse";
 
 export type Difficulty = "easy" | "medium" | "hard";
 
@@ -24,7 +24,7 @@ export type SimulatorSequence = {
   type: "sequence";
   prompt: string;
   steps: { id: string; label: string }[];
-  correctSequence: string[]; // array of step ids
+  correctSequence: string[]; // step ids in correct order
   passText: string;
   failText: string;
 };
@@ -36,7 +36,7 @@ export type World = {
   title: string;
   icon: string;
   curriculum: string[];
-  questions: Question[]; // must be passed to unlock simulator
+  questions: Question[];
   simulator: Simulator;
 };
 
@@ -46,64 +46,70 @@ export const WORLDS: Record<WorldId, World> = {
     title: "Electrician",
     icon: "⚡",
     curriculum: [
-      "Safety first: power off before touching wiring.",
-      "Basic wire roles: hot delivers power, neutral returns, ground is safety.",
-      "Common outage causes: tripped breaker, loose connection, failed switch/outlet."
+      "Safety first: turn power off at the breaker before touching wiring.",
+      "Basic wire roles: hot delivers power, neutral returns, ground is the safety path.",
+      "Common outage causes: a tripped breaker, a loose connection, or a failed switch/outlet.",
     ],
     questions: [
       {
         id: "e1",
         difficulty: "easy",
-        prompt: "What is the FIRST safety step before working on a circuit?",
+        prompt: "What is the FIRST safety step before working on electrical wiring?",
         options: [
-          { id: "a", label: "Turn off power at the breaker" },
-          { id: "b", label: "Touch wires to see if they’re warm" },
-          { id: "c", label: "Replace the light bulb" },
-          { id: "d", label: "Wrap wires with tape" }
+          { id: "a", label: "Put on headphones to focus" },
+          { id: "b", label: "Turn off power at the breaker" },
+          { id: "c", label: "Touch the wire to see if it sparks" },
+          { id: "d", label: "Replace the outlet immediately" },
         ],
-        correctOptionId: "a",
-        explanation: "Always de-energize the circuit first to avoid shock."
+        correctOptionId: "b",
+        explanation:
+          "Always shut off power at the breaker first. Then verify it’s off using a tester.",
       },
       {
         id: "e2",
         difficulty: "medium",
-        prompt: "Which wire is primarily a safety path to prevent shock?",
+        prompt: "Which wire provides the safety path for electricity during a fault?",
         options: [
           { id: "a", label: "Hot" },
           { id: "b", label: "Neutral" },
           { id: "c", label: "Ground" },
-          { id: "d", label: "Load" }
+          { id: "d", label: "Extension cord" },
         ],
         correctOptionId: "c",
-        explanation: "Ground provides a safe path for fault current."
+        explanation:
+          "Ground is the safety path that helps protect people and equipment if something goes wrong.",
       },
       {
         id: "e3",
         difficulty: "hard",
-        prompt: "A room has no power. What is the BEST first check?",
+        prompt:
+          "A single room is dead (no lights/outlets). What is the BEST first thing to check?",
         options: [
-          { id: "a", label: "Replace all outlets" },
-          { id: "b", label: "Check if a breaker is tripped" },
-          { id: "c", label: "Cut the hot wire" },
-          { id: "d", label: "Ignore it—it will return" }
+          { id: "a", label: "Replace every outlet in the room" },
+          { id: "b", label: "Check the breaker for a trip" },
+          { id: "c", label: "Paint the wall a new color" },
+          { id: "d", label: "Buy a new lamp" },
         ],
         correctOptionId: "b",
-        explanation: "Tripped breakers are a common and quick-to-check cause."
-      }
+        explanation:
+          "A tripped breaker is one of the most common causes of a dead room—check it first before deeper troubleshooting.",
+      },
     ],
     simulator: {
       type: "sequence",
-      prompt: "Simulator: Put the steps in the safest order to troubleshoot a dead room.",
+      prompt: "Choose the safest order to troubleshoot a dead room.",
       steps: [
-        { id: "s1", label: "Turn off the breaker for the circuit" },
-        { id: "s2", label: "Verify the circuit is off (tester)" },
-        { id: "s3", label: "Inspect for loose connections / damage" },
-        { id: "s4", label: "Restore power and re-test the room" }
+        { id: "s1", label: "Turn off breaker" },
+        { id: "s2", label: "Verify off with tester" },
+        { id: "s3", label: "Inspect for loose connections/damage" },
+        { id: "s4", label: "Restore power and re-test" },
       ],
       correctSequence: ["s1", "s2", "s3", "s4"],
-      passText: "Pass! You followed a safe troubleshooting sequence.",
-      failText: "Fail. Safety order matters—try again."
-    }
+      passText:
+        "Nice work. You followed a safe troubleshooting flow: power off, verify, inspect, then restore and test.",
+      failText:
+        "Not quite. For safety, you should: turn off the breaker, verify it’s off, inspect, then restore power and re-test.",
+    },
   },
 
   programmer: {
@@ -111,64 +117,71 @@ export const WORLDS: Record<WorldId, World> = {
     title: "Computer Programmer",
     icon: "💻",
     curriculum: [
-      "Debugging: reproduce the problem, isolate the cause, apply a fix.",
-      "Syntax matters: missing quotes/brackets can break builds.",
-      "Logic matters: check conditions and edge cases."
+      "Debugging basics: reproduce the issue, isolate the cause, then fix and verify.",
+      "Syntax matters: missing quotes/brackets can break builds instantly.",
+      "Logic matters too: conditions, edge cases, and assumptions can cause bugs.",
     ],
     questions: [
       {
         id: "p1",
         difficulty: "easy",
-        prompt: "Which is a common syntax error?",
+        prompt: "Which is a common syntax error that can break a build?",
         options: [
-          { id: "a", label: "Missing a closing bracket }" },
-          { id: "b", label: "Writing comments" },
-          { id: "c", label: "Using variables" },
-          { id: "d", label: "Naming a function" }
+          { id: "a", label: "Choosing a fun variable name" },
+          { id: "b", label: "Using comments in code" },
+          { id: "c", label: "Missing closing bracket" },
+          { id: "d", label: "Restarting your computer" },
         ],
-        correctOptionId: "a",
-        explanation: "Unclosed brackets/parentheses are frequent syntax issues."
+        correctOptionId: "c",
+        explanation:
+          "A missing closing bracket/brace/parenthesis is a classic syntax error that can prevent code from compiling.",
       },
       {
         id: "p2",
         difficulty: "medium",
-        prompt: "What is the BEST first step when fixing a bug?",
+        prompt: "What is the best FIRST step when fixing a bug?",
         options: [
-          { id: "a", label: "Guess and change random lines" },
+          { id: "a", label: "Rewrite the entire project" },
           { id: "b", label: "Reproduce the bug consistently" },
-          { id: "c", label: "Delete the file" },
-          { id: "d", label: "Push to production immediately" }
+          { id: "c", label: "Delete the feature" },
+          { id: "d", label: "Only test on one device forever" },
         ],
         correctOptionId: "b",
-        explanation: "Reproducing reliably lets you verify the fix."
+        explanation:
+          "If you can reproduce it reliably, you can test changes and confirm you actually fixed the real issue.",
       },
       {
         id: "p3",
         difficulty: "hard",
-        prompt: "A feature fails only sometimes. What helps MOST?",
+        prompt:
+          "An error happens only sometimes (intermittent). What helps most to diagnose it?",
         options: [
-          { id: "a", label: "Add logging / check inputs" },
-          { id: "b", label: "Restart computer forever" },
-          { id: "c", label: "Ignore the report" },
-          { id: "d", label: "Remove TypeScript" }
+          { id: "a", label: "Ignore it until users complain louder" },
+          { id: "b", label: "Add logging and check inputs/edge cases" },
+          { id: "c", label: "Rename every file randomly" },
+          { id: "d", label: "Turn off the monitor" },
         ],
-        correctOptionId: "a",
-        explanation: "Logs and inputs reveal conditions that trigger intermittent bugs."
-      }
+        correctOptionId: "b",
+        explanation:
+          "Intermittent issues often depend on state or inputs—logging and input checks help you see what changes when it fails.",
+      },
     ],
     simulator: {
       type: "mcq",
-      prompt: "Simulator: The UI button label must be 'Start'. What should the label be?",
+      prompt:
+        'A button label must match the spec exactly. The UI label must be “Start”. Which option is correct?',
       options: [
         { id: "a", label: "Begin" },
-        { id: "b", label: "START" },
+        { id: "b", label: "Launch" },
         { id: "c", label: "Start" },
-        { id: "d", label: "Go" }
+        { id: "d", label: "Go!" },
       ],
       correctOptionId: "c",
-      passText: "Pass! You shipped the correct UI label.",
-      failText: "Fail. Exact label matters for UX consistency."
-    }
+      passText:
+        "Correct. Matching exact UI copy prevents confusion and avoids failing requirements checks.",
+      failText:
+        'Not quite. The spec is strict here—the button text must be exactly “Start”.',
+    },
   },
 
   nurse: {
@@ -176,65 +189,72 @@ export const WORLDS: Record<WorldId, World> = {
     title: "Nursing",
     icon: "🩺",
     curriculum: [
-      "Prioritize patient safety (airway/breathing/circulation).",
-      "Ask clear questions and gather symptoms.",
-      "Choose the right basic checks: temperature, pulse, breathing."
+      "Prioritize safety using ABCs: airway, breathing, circulation.",
+      "Ask clear questions and gather symptoms before acting.",
+      "Use basic checks: temperature, pulse, and breathing rate.",
     ],
     questions: [
       {
         id: "n1",
         difficulty: "easy",
-        prompt: "A patient is struggling to breathe. What is the priority?",
+        prompt:
+          "If a patient is struggling to breathe, what is the top priority?",
         options: [
-          { id: "a", label: "Airway and breathing" },
-          { id: "b", label: "Ask about their favorite food" },
+          { id: "a", label: "Ask about their favorite foods" },
+          { id: "b", label: "Airway and breathing" },
           { id: "c", label: "Schedule a follow-up next month" },
-          { id: "d", label: "Ignore it" }
+          { id: "d", label: "Discuss their weekend plans" },
         ],
-        correctOptionId: "a",
-        explanation: "Breathing issues are urgent—prioritize airway/breathing."
+        correctOptionId: "b",
+        explanation:
+          "ABCs come first. If breathing is compromised, address airway/breathing immediately.",
       },
       {
         id: "n2",
         difficulty: "medium",
-        prompt: "Which tool best checks body temperature?",
+        prompt: "What is the best tool for measuring a patient’s temperature?",
         options: [
-          { id: "a", label: "Stethoscope" },
-          { id: "b", label: "Thermometer" },
-          { id: "c", label: "Flashlight" },
-          { id: "d", label: "Bandage" }
+          { id: "a", label: "Thermometer" },
+          { id: "b", label: "Flashlight" },
+          { id: "c", label: "Stethoscope (only)" },
+          { id: "d", label: "Ruler" },
         ],
-        correctOptionId: "b",
-        explanation: "Thermometers measure temperature."
+        correctOptionId: "a",
+        explanation:
+          "A thermometer is designed to measure temperature accurately.",
       },
       {
         id: "n3",
         difficulty: "hard",
-        prompt: "What is the safest first action with a dizzy patient?",
+        prompt:
+          "A patient says they feel dizzy and unsteady. What is the safest FIRST action?",
         options: [
-          { id: "a", label: "Have them stand up quickly" },
-          { id: "b", label: "Assess vitals and help them sit/lie safely" },
-          { id: "c", label: "Give them candy immediately" },
-          { id: "d", label: "Send them home instantly" }
+          { id: "a", label: "Tell them to stand up quickly" },
+          { id: "b", label: "Assess vitals and help them sit/lie down safely" },
+          { id: "c", label: "Ask them to walk across the room immediately" },
+          { id: "d", label: "Ignore it if they look fine" },
         ],
         correctOptionId: "b",
-        explanation: "Prevent falls and assess vitals before decisions."
-      }
+        explanation:
+          "Prevent falls first and assess vitals to understand what’s happening before further steps.",
+      },
     ],
     simulator: {
       type: "mcq",
-      prompt: "Simulator: A patient has a fever and sore throat. What is a good next step?",
+      prompt: "A patient reports fever + sore throat. What’s a good next step?",
       options: [
-        { id: "a", label: "Ask symptoms and check temperature" },
-        { id: "b", label: "Ignore symptoms" },
-        { id: "c", label: "Tell them to run a marathon" },
-        { id: "d", label: "Do nothing" }
+        { id: "a", label: "Tell them to run a marathon" },
+        { id: "b", label: "Ask symptoms + check temperature" },
+        { id: "c", label: "Skip questions and guess the diagnosis" },
+        { id: "d", label: "Only check blood pressure and send them home" },
       ],
-      correctOptionId: "a",
-      passText: "Pass! You gathered info and used the right check.",
-      failText: "Fail. You need to assess symptoms and vitals first."
-    }
-  }
+      correctOptionId: "b",
+      passText:
+        "Good choice. Gather symptoms and measure temperature to guide safe next steps.",
+      failText:
+        "Try again. A safe next step is to ask clear symptom questions and check temperature.",
+    },
+  },
 };
 
 export function worldIds(): WorldId[] {
