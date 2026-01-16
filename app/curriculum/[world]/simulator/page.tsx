@@ -70,7 +70,13 @@ export default function SimulatorPage({
   const [sequence, setSequence] = useState<string[]>([]);
   const [result, setResult] = useState<"pass" | "fail" | null>(null);
 
-  if (!world) {
+  
+
+  function resetAttempt() {
+    setSelectedOption(null);
+    setSequence([]);
+    setResult(null);
+  }if (!world) {
     return (
       <main style={container}>
         <section style={card}>
